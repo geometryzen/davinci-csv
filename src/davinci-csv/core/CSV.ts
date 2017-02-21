@@ -19,9 +19,10 @@ interface NormalizedDialect {
 const rxIsInt = /^\d+$/;
 
 /**
- * Regular expression for detecting floating point numbers.
+ * Regular expression for detecting floating point numbers (with optional exponents).
  */
-const rxIsFloat = /^\d*\.\d+$|^\d+\.\d*$/;
+const rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
+
 // If a string has leading or trailing space,
 // contains a comma double quote or a newline
 // it needs to be quoted in CSV output
@@ -249,7 +250,10 @@ export function parse(csvText: string, dialect?: Dialect): (string | number | nu
      * Helper function to parse a single field.
      */
     const parseField = function parseField(fieldAsString: string): string | number | null {
-        if (fieldQuoted !== true) {
+        if (fieldQuoted) {
+            return fieldAsString;
+        }
+        else {
             // If field is empty set to null
             if (fieldAsString === '') {
                 return null;
@@ -267,11 +271,9 @@ export function parse(csvText: string, dialect?: Dialect): (string | number | nu
                 return parseFloat(fieldAsString);
             }
             else {
+                // An example here is a heading which is not quoted.
                 return fieldAsString;
             }
-        }
-        else {
-            return fieldAsString;
         }
     };
 

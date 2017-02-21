@@ -444,7 +444,7 @@ define('davinci-csv/config',["require", "exports"], function (require, exports) 
             this.GITHUB = 'https://github.com/geometryzen/davinci-csv';
             this.LAST_MODIFIED = '2017-02-21';
             this.NAMESPACE = 'CSV';
-            this.VERSION = '0.9.0';
+            this.VERSION = '0.9.1';
         }
         return Config;
     }());
@@ -456,7 +456,7 @@ define('davinci-csv/config',["require", "exports"], function (require, exports) 
 define('davinci-csv/core/CSV',["require", "exports"], function (require, exports) {
     "use strict";
     var rxIsInt = /^\d+$/;
-    var rxIsFloat = /^\d*\.\d+$|^\d+\.\d*$/;
+    var rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
     var rxNeedsQuoting = /^\s|\s$|,|"|\n/;
     var trim = (function () {
         if (String.prototype.trim) {
@@ -588,7 +588,10 @@ define('davinci-csv/core/CSV',["require", "exports"], function (require, exports
         var row = [];
         var out = [];
         var parseField = function parseField(fieldAsString) {
-            if (fieldQuoted !== true) {
+            if (fieldQuoted) {
+                return fieldAsString;
+            }
+            else {
                 if (fieldAsString === '') {
                     return null;
                 }
@@ -604,9 +607,6 @@ define('davinci-csv/core/CSV',["require", "exports"], function (require, exports
                 else {
                     return fieldAsString;
                 }
-            }
-            else {
-                return fieldAsString;
             }
         };
         for (var i = 0; i < sLength; i += 1) {

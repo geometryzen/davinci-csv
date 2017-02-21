@@ -11,7 +11,7 @@ System.register('davinci-csv/config.js', [], function (exports_1, context_1) {
                     this.GITHUB = 'https://github.com/geometryzen/davinci-csv';
                     this.LAST_MODIFIED = '2017-02-21';
                     this.NAMESPACE = 'CSV';
-                    this.VERSION = '0.9.0';
+                    this.VERSION = '0.9.1';
                 }
                 return Config;
             }();
@@ -142,7 +142,9 @@ System.register("davinci-csv/core/CSV.js", [], function (exports_1, context_1) {
         var row = [];
         var out = [];
         var parseField = function parseField(fieldAsString) {
-            if (fieldQuoted !== true) {
+            if (fieldQuoted) {
+                return fieldAsString;
+            } else {
                 if (fieldAsString === '') {
                     return null;
                 } else if (options.trim) {
@@ -155,8 +157,6 @@ System.register("davinci-csv/core/CSV.js", [], function (exports_1, context_1) {
                 } else {
                     return fieldAsString;
                 }
-            } else {
-                return fieldAsString;
             }
         };
         for (var i = 0; i < sLength; i += 1) {
@@ -200,7 +200,7 @@ System.register("davinci-csv/core/CSV.js", [], function (exports_1, context_1) {
         setters: [],
         execute: function () {
             rxIsInt = /^\d+$/;
-            rxIsFloat = /^\d*\.\d+$|^\d+\.\d*$/;
+            rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
             rxNeedsQuoting = /^\s|\s$|,|"|\n/;
             trim = function () {
                 if (String.prototype.trim) {
