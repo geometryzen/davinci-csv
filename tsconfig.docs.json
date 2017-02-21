@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "system",
+        "target": "ES5",
+        "outDir": "test/system",
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noLib": false,
+        "removeComments": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "moduleResolution": "classic",
+        "sourceMap": false,
+        "strictNullChecks": true,
+        "inlineSourceMap": false,
+        "inlineSources": false
+    },
+    "files": [
+        "src/davinci-csv.ts"
+    ]
+}
