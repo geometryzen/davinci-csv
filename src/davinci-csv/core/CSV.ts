@@ -2,26 +2,34 @@ import Data from './Data';
 import Dialect from './Dialect';
 
 /**
- * The normalized dialect is lowercase and everything is required.
  * For internal conceptual integrity.
  */
 interface NormalizedDialect {
-    delimiter: string;
-    doublequote: boolean;
-    lineterminator: string;
-    quotechar: string;
-    skipinitialrows: number;
-    skipinitialspace: boolean;
-    trim?: boolean;
+    delim: string;
+    escape: boolean;
+    lineTerm: string;
+    quoteChar: string;
+    skipRows: number;
+    trim: boolean;
 }
 
+/**
+ * Rehular expression for detecting integers.
+ */
 const rxIsInt = /^\d+$/;
+
+/**
+ * Regular expression for detecting floating point numbers.
+ */
 const rxIsFloat = /^\d*\.\d+$|^\d+\.\d*$/;
 // If a string has leading or trailing space,
 // contains a comma double quote or a newline
 // it needs to be quoted in CSV output
 const rxNeedsQuoting = /^\s|\s$|,|"|\n/;
 
+/**
+ * A polyfill in case String.trim does not exist.
+ */
 const trim = (function () {
     // Fx 3.1 has a native trim function, it's about 10x faster, use it if it exists
     if (String.prototype.trim) {
@@ -46,6 +54,9 @@ function chomp(s: string, lineterminator: string): string {
     }
 }
 
+/**
+ * Replaces all the funky line terminators with a single newline character.
+ */
 function normalizeLineTerminator(csvString: string, dialect: Dialect = {}): string {
     // Try to guess line terminator if it's not provided.
     if (!dialect.lineTerminator) {
@@ -58,6 +69,7 @@ function normalizeLineTerminator(csvString: string, dialect: Dialect = {}): stri
 /**
  * Converts from the fields and records structure to an array of arrays.
  * The first row in the output contains the field names in the same order as the input.
+ * @returns An array of arrays, [][], of (number|string|null) field values.
  */
 export function dataToArrays(data: Data): (number | string | null)[][] {
     const arrays: (string | number | null)[][] = [];
@@ -77,27 +89,37 @@ export function dataToArrays(data: Data): (number | string | null)[][] {
     return arrays;
 }
 
-function normalizeDialectOptions(options?: Dialect): NormalizedDialect {
+function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
     // note lower case compared to CSV DDF
-    const out: NormalizedDialect = {
-        delimiter: ',',
-        doublequote: true,
-        lineterminator: '\n',
-        quotechar: '"',
-        skipinitialspace: true,
-        skipinitialrows: 0
+    const options: NormalizedDialect = {
+        delim: ',',
+        escape: true,
+        lineTerm: '\n',
+        quoteChar: '"',
+        skipRows: 0,
+        trim: true
     };
-    if (options) {
-        for (const key in options) {
-            if (key === 'trim') {
-                out.skipinitialspace = options.trim ? options.trim : false;
-            }
-            else {
-                (<any>out)[key.toLowerCase()] = (<any>options)[key];
-            }
+    if (dialect) {
+        if (typeof dialect.fieldDelimiter === 'string') {
+            options.delim = dialect.fieldDelimiter;
+        }
+        if (typeof dialect.escapeEmbeddedQuotes === 'boolean') {
+            options.escape = dialect.escapeEmbeddedQuotes;
+        }
+        if (typeof dialect.lineTerminator === 'string') {
+            options.lineTerm = dialect.lineTerminator;
+        }
+        if (typeof dialect.quoteChar === 'string') {
+            options.quoteChar = dialect.quoteChar;
+        }
+        if (typeof dialect.skipInitialRows === 'number') {
+            options.skipRows = dialect.skipInitialRows;
+        }
+        if (typeof dialect.trimFields === 'boolean') {
+            options.trim = dialect.trimFields;
         }
     }
-    return out;
+    return options;
 }
 
 // ## serialize
@@ -114,35 +136,18 @@ export function serialize(data: Data | (string | number | null)[][], dialect?: D
     const a: (string | number | null)[][] = (data instanceof Array) ? data : dataToArrays(data);
     const options = normalizeDialectOptions(dialect);
 
-    /**
-     * The fields we are currently processing.
-     */
-    let fields: (string | number | null)[] = [];
-
-    /**
-     * Buffer for building up the current field.
-     */
-    let fieldBuffer = '';
-    /**
-     * Buffer for building up the current row.
-     */
-    let rowBuffer = '';
-    /**
-     * Buffer for building up the output.
-     */
-    let outBuffer = '';
-
-    let processField = function processedField(field: string | number | null): string {
+    const fieldToString = function fieldToString(field: string | number | null): string {
         if (field === null) {
             // If field is null set to empty string
             field = '';
         }
         else if (typeof field === "string" && rxNeedsQuoting.test(field)) {
-            if (options.doublequote) {
+            if (options.escape) {
+                // FIXME: May need to be the quote character?
                 field = field.replace(/"/g, '""');
             }
             // Convert string to delimited string
-            field = options.quotechar + field + options.quotechar;
+            field = options.quoteChar + field + options.quoteChar;
         }
         else if (typeof field === "number") {
             // Convert number to string
@@ -152,101 +157,145 @@ export function serialize(data: Data | (string | number | null)[][], dialect?: D
         return field;
     };
 
+    /**
+     * Buffer for building up the output.
+     */
+    let outBuffer = '';
+
     for (let i = 0; i < a.length; i += 1) {
-        fields = a[i];
+        /**
+         * The fields we are currently processing.
+         */
+        const fields = a[i];
+
+        /**
+         * Buffer for building up the current row.
+         */
+        let rowBuffer = '';
 
         for (let j = 0; j < fields.length; j += 1) {
-            fieldBuffer = processField(fields[j]);
+            /**
+             * Buffer for building up the current field.
+             */
+            let fieldBuffer = fieldToString(fields[j]);
             // If this is EOR append row to output and flush row
             if (j === (fields.length - 1)) {
                 rowBuffer += fieldBuffer;
-                outBuffer += rowBuffer + options.lineterminator;
+                outBuffer += rowBuffer + options.lineTerm;
                 rowBuffer = '';
-            } else {
-                // Add the current field to the current row
-                rowBuffer += fieldBuffer + options.delimiter;
             }
-            // Flush the field buffer
-            fieldBuffer = '';
+            else {
+                // Add the current field to the current row
+                rowBuffer += fieldBuffer + options.delim;
+            }
         }
     }
 
     return outBuffer;
 }
 
-export function parse(s: string, dialect?: Dialect): (string | number | null)[][] {
-
+/**
+ * Normalizes the line terminator across the file
+ */
+function normalizeInputString(csvText: string, dialect?: Dialect) {
     // When line terminator is not provided then we try to guess it
     // and normalize it across the file.
     if (!dialect || (dialect && !dialect.lineTerminator)) {
-        s = normalizeLineTerminator(s, dialect);
+        csvText = normalizeLineTerminator(csvText, dialect);
     }
 
-    // Get rid of any trailing \n
     const options = normalizeDialectOptions(dialect);
-    s = chomp(s, options.lineterminator);
+
+    // Get rid of any trailing \n
+    return { s: chomp(csvText, options.lineTerm), options };
+}
+
+/**
+ * Parses a string representation of CSV data into an array of arrays, [][]
+ * The dialect may be specified to improve the parsing.
+ * @returns An array of arrays, [][], of (number|string|null) field values.
+ */
+export function parse(csvText: string, dialect?: Dialect): (string | number | null)[][] {
+
+    const {s, options} = normalizeInputString(csvText, dialect);
+    /**
+     * Using cached length of s will improve performance and is safe because s is constant.
+     */
+    const sLength = s.length;
 
     /**
      * The character we are currently processing.
      */
-    let cur = '';
+    let ch = '';
     let inQuote = false;
     let fieldQuoted = false;
 
     /**
-     * Buffer for building up the current field
+     * The parsed current field
      */
-    let fieldX: string | number | null = '';
+    let field: string | number | null = '';
+
+    /**
+     * The parsed row.
+     */
     let row: (string | number | null)[] = [];
+
+    /**
+     * The parsed output.
+     */
     let out: (string | number | null)[][] = [];
-    let processField = function processField(field: string): string | number | null {
+
+    /**
+     * Helper function to parse a single field.
+     */
+    const parseField = function parseField(fieldAsString: string): string | number | null {
         if (fieldQuoted !== true) {
             // If field is empty set to null
-            if (field === '') {
+            if (fieldAsString === '') {
                 return null;
                 // If the field was not quoted and we are trimming fields, trim it
             }
-            else if (options.skipinitialspace === true) {
-                field = trim(field);
+            else if (options.trim) {
+                fieldAsString = trim(fieldAsString);
             }
 
             // Convert unquoted numbers to their appropriate types
-            if (rxIsInt.test(field)) {
-                return parseInt(field, 10);
+            if (rxIsInt.test(fieldAsString)) {
+                return parseInt(fieldAsString, 10);
             }
-            else if (rxIsFloat.test(field)) {
-                return parseFloat(field);
+            else if (rxIsFloat.test(fieldAsString)) {
+                return parseFloat(fieldAsString);
             }
             else {
-                return field;
+                return fieldAsString;
             }
         }
         else {
-            return field;
+            return fieldAsString;
         }
     };
 
-    for (let i = 0; i < s.length; i += 1) {
-        cur = s.charAt(i);
+    for (let i = 0; i < sLength; i += 1) {
+        ch = s.charAt(i);
 
         // If we are at a EOF or EOR
-        if (inQuote === false && (cur === options.delimiter || cur === options.lineterminator)) {
-            fieldX = processField(fieldX);
+        if (inQuote === false && (ch === options.delim || ch === options.lineTerm)) {
+            field = parseField(field);
             // Add the current field to the current row
-            row.push(fieldX);
+            row.push(field);
             // If this is EOR append row to output and flush row
-            if (cur === options.lineterminator) {
+            if (ch === options.lineTerm) {
                 out.push(row);
                 row = [];
             }
             // Flush the field buffer
-            fieldX = '';
+            field = '';
             fieldQuoted = false;
         }
         else {
-            // If it's not a quotechar, add it to the field buffer
-            if (cur !== options.quotechar) {
-                fieldX += cur;
+            // If it's not a quote character, add it to the field buffer
+            if (ch !== options.quoteChar) {
+                field += ch;
             }
             else {
                 if (!inQuote) {
@@ -255,9 +304,9 @@ export function parse(s: string, dialect?: Dialect): (string | number | null)[][
                     fieldQuoted = true;
                 }
                 else {
-                    // Next char is quotechar, this is an escaped quotechar
-                    if (s.charAt(i + 1) === options.quotechar) {
-                        fieldX += options.quotechar;
+                    // Next char is quote character, this is an escaped quote character.
+                    if (s.charAt(i + 1) === options.quoteChar) {
+                        field += options.quoteChar;
                         // Skip the next char
                         i += 1;
                     }
@@ -271,12 +320,12 @@ export function parse(s: string, dialect?: Dialect): (string | number | null)[][
     }
 
     // Add the last field
-    fieldX = processField(fieldX);
-    row.push(fieldX);
+    field = parseField(field);
+    row.push(field);
     out.push(row);
 
     // Expose the ability to discard initial rows
-    if (options.skipinitialrows) out = out.slice(options.skipinitialrows);
+    if (options.skipRows) out = out.slice(options.skipRows);
 
     return out;
 }

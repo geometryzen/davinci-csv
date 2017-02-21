@@ -1,6 +1,5 @@
 import Data from './Data';
 import Dialect from './Dialect';
-import NormalizedDialect from './NormalizedDialect';
 import { parse, serialize } from './CSV';
 
 
@@ -21,7 +20,7 @@ export default function () {
     const csv2 = '"Jones, Jay", 10\n' +
       '"Xyz ""ABC"" O\'Brien", 11:35\n' +
       '"Other, AN", 12:35\n';
-    const array = parse(csv2, { trim: true });
+    const array = parse(csv2, { trimFields: true });
     expect(array).toEqual(exp);
   });
 
@@ -30,7 +29,7 @@ export default function () {
       '"Xyz ""ABC"" O\'Brien";11:35\n' +
       '"Other; AN";12:35\n';
 
-    const array = parse(csv, { delimiter: ';' });
+    const array = parse(csv, { fieldDelimiter: ';' });
     const exp = [
       ['Jones; Jay', 10],
       ['Xyz "ABC" O\'Brien', '11:35'],
@@ -104,7 +103,7 @@ export default function () {
       ['Xyz "ABC" O\'Brien', '11:35']
     ];
 
-    const out = serialize(csv, { doubleQuote: false });
+    const out = serialize(csv, { escapeEmbeddedQuotes: false });
     const exp = '"Jones, Jay",10\n' +
       '"Xyz "ABC" O\'Brien",11:35\n';
     expect(out).toEqual(exp);
@@ -122,7 +121,7 @@ export default function () {
     ];
 
     const settings: Dialect = {
-      delimiter: ',',
+      fieldDelimiter: ',',
       lineTerminator: '\r',
     };
 
@@ -160,7 +159,7 @@ export default function () {
 
     // Override line terminator
     const settings: Dialect = {
-      delimiter: ',',
+      fieldDelimiter: ',',
       lineTerminator: '\r',
     };
     const csv4 = '"Jones, Jay",10\r' +
@@ -174,7 +173,7 @@ export default function () {
   it("Nested mixed terminators", function () {
     // Override line terminator
     const settings: Dialect = {
-      delimiter: ',',
+      fieldDelimiter: ',',
       lineTerminator: '\r',
     };
     const exp = [
