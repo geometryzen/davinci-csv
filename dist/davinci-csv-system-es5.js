@@ -9,9 +9,9 @@ System.register('davinci-csv/config.js', [], function (exports_1, context_1) {
             Config = function () {
                 function Config() {
                     this.GITHUB = 'https://github.com/geometryzen/davinci-csv';
-                    this.LAST_MODIFIED = '2017-02-21';
+                    this.LAST_MODIFIED = '2017-03-07';
                     this.NAMESPACE = 'CSV';
-                    this.VERSION = '0.9.1';
+                    this.VERSION = '0.9.2';
                 }
                 return Config;
             }();
