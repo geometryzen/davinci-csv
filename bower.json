@@ -1,6 +1,6 @@
 {
     "name": "davinci-csv",
-    "version": "0.9.2",
+    "version": "0.9.3",
     "description": "Comma Separated Value (CSV) Library for JavaScript with TypeScript d.ts files.",
     "author": {
         "name": "David Holmes",
