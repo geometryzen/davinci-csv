@@ -1,4 +1,4 @@
-./vscode
+.vscode
 /amd
 /bower_components
 /jspm_packages
@@ -9,13 +9,14 @@
 /test
 /typings
 .gitignore
+.npmignore
 .settings
 .travis.yml
 bower.json
 config.js
 CONTRIBUTING.md
 Gruntfile.js
-karam.conf.js
+karma.conf.js
 requirejs.config.js
 specrunner.html
 STANDARDS.md

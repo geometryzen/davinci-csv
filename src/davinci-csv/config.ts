@@ -20,7 +20,7 @@ class Config {
         this.GITHUB = 'https://github.com/geometryzen/davinci-csv';
         this.LAST_MODIFIED = '2017-05-13';
         this.NAMESPACE = 'CSV';
-        this.VERSION = '0.9.3';
+        this.VERSION = '0.9.4';
     }
 }
 
