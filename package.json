@@ -1,6 +1,6 @@
 {
   "name": "davinci-csv",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Comma Separated Value (CSV) Library for JavaScript with TypeScript d.ts files.",
   "author": {
     "name": "David Holmes",
@@ -33,9 +33,9 @@
     "test": "yarn lint && yarn unit && nyc check-coverage --lines 94 --functions 91 --branches 90",
     "watch": "concurrently -r --kill-others 'tsc -p tsconfig.json -w' 'sleepms 2000 && jasmine-node test --autotest --watch test'",
     "coverage": "trash test && tsc -p tsconfig.json && nyc jasmine-node test && nyc report --reporter=html && opn coverage/index.html",
-    "docs": "yarn docs:typedoc && opn build/docs/index.html",
-    "docs:typedoc": "typedoc src/index.ts --excludePrivate --excludeNotExported --mode file --theme minimal --out build/docs",
-    "docs:publish": "yarn docs:typedoc && gh-pages -d build/docs",
+    "docs": "yarn docs:typedoc && opn docs/index.html",
+    "docs:typedoc": "trash docs && typedoc src/index.ts --excludePrivate --excludeNotExported --mode file --theme minimal --out docs",
+    "pages": "yarn docs:typedoc && gh-pages -d docs",
     "changelog": "standard-version"
   },
   "scripts-info": {
@@ -47,7 +47,7 @@
     "watch": "Watch source files, rebuild library on changes, rerun relevant tests",
     "coverage": "Run tests, generate the HTML coverage report, and open it in a browser",
     "docs": "Generate HTML API documentation and open it in a browser",
-    "docs:publish": "Generate HTML API documentation and push it to GitHub Pages",
+    "pages": "Generate HTML API documentation and push it to GitHub Pages",
     "changelog": "Bump package.json version, update CHANGELOG.md, tag a release"
   },
   "nyc": {
