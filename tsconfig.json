@@ -1,29 +1,30 @@
 {
-    "extends": "./config/tsconfig.flexible", // also available: "./config/tsconfig.strict"
     "compilerOptions": {
         "target": "es6",
-        "outDir": "build/main",
+        "outDir": "test",
         "rootDir": "src",
         "moduleResolution": "node",
         "module": "commonjs",
-        "declaration": true,
+        "declaration": false,
         "importHelpers": true,
         "inlineSourceMap": true,
         "listFiles": false,
         "traceResolution": false,
         "pretty": true,
+        "strictNullChecks": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
         "lib": [
             "es6"
         ],
         "types": [
             "node"
-        ],
-        "baseUrl": ".", // required for "paths"
-        "paths": {
-            "davinci-csv": [
-                "src/index.ts"
-            ] // write tests without relative paths
-        }
+        ]
     },
     "files": [
         "typings/jasmine/jasmine.d.ts"

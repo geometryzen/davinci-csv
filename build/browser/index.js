@@ -5,7 +5,7 @@
 }(this, (function (exports) { 'use strict';
 
 /**
- * Rehular expression for detecting integers.
+ * Regular expression for detecting integers.
  */
 const rxIsInt = /^\d+$/;
 /**
@@ -32,13 +32,16 @@ const trim = (function () {
         };
     }
 }());
+/**
+ *
+ */
 function chomp(s, lineterminator) {
     if (s.charAt(s.length - lineterminator.length) !== lineterminator) {
-        // Does not end with \n, just return string
+        // Does not end with \n, just return string.
         return s;
     }
     else {
-        // Remove the \n
+        // Remove the newline.
         return s.substring(0, s.length - lineterminator.length);
     }
 }
@@ -56,27 +59,21 @@ function normalizeLineTerminator(csvString, dialect = {}) {
 /**
  * Converts from the fields and records structure to an array of arrays.
  * The first row in the output contains the field names in the same order as the input.
- * @returns An array of arrays, [][], of (number|string|null) field values.
  */
 function dataToArrays(data) {
     const arrays = [];
-    const fieldNames = [];
-    for (let ii = 0; ii < data.fields.length; ii++) {
-        fieldNames.push(data.fields[ii].id);
-    }
-    arrays.push(fieldNames);
-    for (let ii = 0; ii < data.records.length; ii++) {
-        const tmp = [];
-        const record = data.records[ii];
-        for (let jj = 0; jj < fieldNames.length; jj++) {
-            tmp.push(record[fieldNames[jj]]);
-        }
+    const fieldIds = data.fields.map(field => field.id);
+    arrays.push(fieldIds);
+    for (const record of data.records) {
+        const tmp = fieldIds.map(fieldId => record[fieldId]);
         arrays.push(tmp);
     }
     return arrays;
 }
+/**
+ */
 function normalizeDialectOptions(dialect) {
-    // note lower case compared to CSV DDF
+    // note lower case compared to CSV DDF.
     const options = {
         delim: ',',
         escape: true,
@@ -171,7 +168,7 @@ function serialize(data, dialect) {
     return outBuffer;
 }
 /**
- * Normalizes the line terminator across the file
+ * Normalizes the line terminator across the file.
  */
 function normalizeInputString(csvText, dialect) {
     // When line terminator is not provided then we try to guess it
@@ -184,9 +181,8 @@ function normalizeInputString(csvText, dialect) {
     return { s: chomp(csvText, options.lineTerm), options };
 }
 /**
- * Parses a string representation of CSV data into an array of arrays, [][]
+ * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
- * @returns An array of arrays, [][], of (number|string|null) field values.
  */
 function parse(csvText, dialect) {
     const { s, options } = normalizeInputString(csvText, dialect);

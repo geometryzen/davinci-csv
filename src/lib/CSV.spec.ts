@@ -1,6 +1,4 @@
-import Data from './Data';
-import Dialect from './Dialect';
-import { parse, serialize } from 'davinci-csv';
+import { Data, Dialect, parse, serialize } from './CSV';
 
 
 describe("parse", function () {

@@ -1,5 +1,60 @@
-import Data from './Data';
-import Dialect from './Dialect';
+
+/**
+ * A field in a comma-separated file is either a number, a string, or null.
+ */
+export type Field = number | string | null;
+
+/**
+ * A format for relational data.
+ */
+export interface Data {
+    fields: { id: string }[];
+    records: { [fieldId: string]: Field }[];
+}
+
+/**
+ * Options used for customizing parsing and serialization.
+ */
+export interface Dialect {
+    /**
+     * Specifies the delimiter between fields.
+     * Default is the comma, </code>','</code>.
+     * Used for parsing and serialization.
+     */
+    fieldDelimiter?: string;
+
+    /**
+     * Determines whether embedded quotation marks in strings are escaped during <em>serialization</em> by doubling them.
+     * Default is <code>true</code>.
+     */
+    escapeEmbeddedQuotes?: boolean;
+
+    /**
+     * Specifies the character used to terminate a line.
+     * Default is a single newline character, <code>'\n'</code>.
+     * Used for parsing and serialization.
+     */
+    lineTerminator?: string;
+
+    /**
+     * The character used for quoting string fields.
+     * Default is the double quote, <code>'"'</code>.
+     * Used for parsing and serialization.
+     */
+    quoteChar?: string;
+
+    /**
+     * Skips the specified number of initial rows during <em>parsing</em>.
+     * Default is zero, <code>0</code>.
+     */
+    skipInitialRows?: number;
+
+    /**
+     * Determines whether fields are trimmed during <em>parsing</em>.
+     * Default is <code>true</code>.
+     */
+    trimFields?: boolean;
+}
 
 /**
  * For internal conceptual integrity.
@@ -14,7 +69,7 @@ interface NormalizedDialect {
 }
 
 /**
- * Rehular expression for detecting integers.
+ * Regular expression for detecting integers.
  */
 const rxIsInt = /^\d+$/;
 
@@ -44,13 +99,16 @@ const trim = (function () {
     }
 }());
 
+/**
+ *
+ */
 function chomp(s: string, lineterminator: string): string {
     if (s.charAt(s.length - lineterminator.length) !== lineterminator) {
-        // Does not end with \n, just return string
+        // Does not end with \n, just return string.
         return s;
     }
     else {
-        // Remove the \n
+        // Remove the newline.
         return s.substring(0, s.length - lineterminator.length);
     }
 }
@@ -70,28 +128,22 @@ function normalizeLineTerminator(csvString: string, dialect: Dialect = {}): stri
 /**
  * Converts from the fields and records structure to an array of arrays.
  * The first row in the output contains the field names in the same order as the input.
- * @returns An array of arrays, [][], of (number|string|null) field values.
  */
-export function dataToArrays(data: Data): (number | string | null)[][] {
-    const arrays: (string | number | null)[][] = [];
-    const fieldNames: string[] = [];
-    for (let ii = 0; ii < data.fields.length; ii++) {
-        fieldNames.push(data.fields[ii].id);
-    }
-    arrays.push(fieldNames);
-    for (let ii = 0; ii < data.records.length; ii++) {
-        const tmp: (string | number | null)[] = [];
-        const record = data.records[ii];
-        for (let jj = 0; jj < fieldNames.length; jj++) {
-            tmp.push(record[fieldNames[jj]]);
-        }
+export function dataToArrays(data: Data): Field[][] {
+    const arrays: Field[][] = [];
+    const fieldIds = data.fields.map(field => field.id);
+    arrays.push(fieldIds);
+    for (const record of data.records) {
+        const tmp = fieldIds.map(fieldId => record[fieldId]);
         arrays.push(tmp);
     }
     return arrays;
 }
 
+/**
+ */
 function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
-    // note lower case compared to CSV DDF
+    // note lower case compared to CSV DDF.
     const options: NormalizedDialect = {
         delim: ',',
         escape: true,
@@ -133,8 +185,8 @@ function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
 /**
  * Converts from structured data to a string in CSV format of the specified dialect.
  */
-export function serialize(data: Data | (string | number | null)[][], dialect?: Dialect): string {
-    const a: (string | number | null)[][] = (data instanceof Array) ? data : dataToArrays(data);
+export function serialize(data: Data | Field[][], dialect?: Dialect): string {
+    const a: Field[][] = (data instanceof Array) ? data : dataToArrays(data);
     const options = normalizeDialectOptions(dialect);
 
     const fieldToString = function fieldToString(field: string | number | null): string {
@@ -196,7 +248,7 @@ export function serialize(data: Data | (string | number | null)[][], dialect?: D
 }
 
 /**
- * Normalizes the line terminator across the file
+ * Normalizes the line terminator across the file.
  */
 function normalizeInputString(csvText: string, dialect?: Dialect) {
     // When line terminator is not provided then we try to guess it
@@ -212,13 +264,12 @@ function normalizeInputString(csvText: string, dialect?: Dialect) {
 }
 
 /**
- * Parses a string representation of CSV data into an array of arrays, [][]
+ * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
- * @returns An array of arrays, [][], of (number|string|null) field values.
  */
-export function parse(csvText: string, dialect?: Dialect): (string | number | null)[][] {
+export function parse(csvText: string, dialect?: Dialect): Field[][] {
 
-    const {s, options} = normalizeInputString(csvText, dialect);
+    const { s, options } = normalizeInputString(csvText, dialect);
     /**
      * Using cached length of s will improve performance and is safe because s is constant.
      */
@@ -234,17 +285,17 @@ export function parse(csvText: string, dialect?: Dialect): (string | number | nu
     /**
      * The parsed current field
      */
-    let field: string | number | null = '';
+    let field: Field = '';
 
     /**
      * The parsed row.
      */
-    let row: (string | number | null)[] = [];
+    let row: Field[] = [];
 
     /**
      * The parsed output.
      */
-    let out: (string | number | null)[][] = [];
+    let out: Field[][] = [];
 
     /**
      * Helper function to parse a single field.

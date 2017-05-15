@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for CSV.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prettify.css" />
+    <link rel="stylesheet" href="base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="index.html">All files</a> CSV.ts
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">94.78% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>109/115</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">90.77% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>59/65</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">92.86% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>13/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">94.64% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>106/112</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">49x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">88x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">49x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">49x</span>
+<span class="cline-any cline-yes">49x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">49x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">846x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">846x</span>
+<span class="cline-any cline-yes">74x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">74x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">74x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">74x</span>
+<span class="cline-any cline-yes">74x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">772x</span>
+<span class="cline-any cline-yes">669x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">103x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&nbsp;
+/**
+ * A field in a comma-separated file is either a number, a string, or null.
+ */
+export type Field = number | string | null;
+&nbsp;
+/**
+ * A format for relational data.
+ */
+export interface Data {
+    fields: { id: string }[];
+    records: { [fieldId: string]: Field }[];
+}
+&nbsp;
+/**
+ * Options used for customizing parsing and serialization.
+ */
+export interface Dialect {
+    /**
+     * Specifies the delimiter between fields.
+     * Default is the comma, &lt;/code&gt;','&lt;/code&gt;.
+     * Used for parsing and serialization.
+     */
+    fieldDelimiter?: string;
+&nbsp;
+    /**
+     * Determines whether embedded quotation marks in strings are escaped during &lt;em&gt;serialization&lt;/em&gt; by doubling them.
+     * Default is &lt;code&gt;true&lt;/code&gt;.
+     */
+    escapeEmbeddedQuotes?: boolean;
+&nbsp;
+    /**
+     * Specifies the character used to terminate a line.
+     * Default is a single newline character, &lt;code&gt;'\n'&lt;/code&gt;.
+     * Used for parsing and serialization.
+     */
+    lineTerminator?: string;
+&nbsp;
+    /**
+     * The character used for quoting string fields.
+     * Default is the double quote, &lt;code&gt;'"'&lt;/code&gt;.
+     * Used for parsing and serialization.
+     */
+    quoteChar?: string;
+&nbsp;
+    /**
+     * Skips the specified number of initial rows during &lt;em&gt;parsing&lt;/em&gt;.
+     * Default is zero, &lt;code&gt;0&lt;/code&gt;.
+     */
+    skipInitialRows?: number;
+&nbsp;
+    /**
+     * Determines whether fields are trimmed during &lt;em&gt;parsing&lt;/em&gt;.
+     * Default is &lt;code&gt;true&lt;/code&gt;.
+     */
+    trimFields?: boolean;
+}
+&nbsp;
+/**
+ * For internal conceptual integrity.
+ */
+interface NormalizedDialect {
+    delim: string;
+    escape: boolean;
+    lineTerm: string;
+    quoteChar: string;
+    skipRows: number;
+    trim: boolean;
+}
+&nbsp;
+/**
+ * Regular expression for detecting integers.
+ */
+const rxIsInt = /^\d+$/;
+&nbsp;
+/**
+ * Regular expression for detecting floating point numbers (with optional exponents).
+ */
+const rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
+&nbsp;
+// If a string has leading or trailing space,
+// contains a comma double quote or a newline
+// it needs to be quoted in CSV output
+const rxNeedsQuoting = /^\s|\s$|,|"|\n/;
+&nbsp;
+/**
+ * A polyfill in case String.trim does not exist.
+ */
+const trim = (function () {
+    // Fx 3.1 has a native trim function, it's about 10x faster, use it if it exists
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (String.prototype.trim) {
+        return function (s: string) {
+            return s.trim();
+        };
+    } else {
+<span class="cstat-no" title="statement not covered" >        return <span class="fstat-no" title="function not covered" >function (</span>s: string) {</span>
+<span class="cstat-no" title="statement not covered" >            return s.replace(/^\s*/, '').replace(/\s*$/, '');</span>
+        };
+    }
+}());
+&nbsp;
+/**
+ *
+ */
+function chomp(s: string, lineterminator: string): string {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (s.charAt(s.length - lineterminator.length) !== lineterminator) {
+        // Does not end with \n, just return string.
+<span class="cstat-no" title="statement not covered" >        return s;</span>
+    }
+    else {
+        // Remove the newline.
+        return s.substring(0, s.length - lineterminator.length);
+    }
+}
+&nbsp;
+/**
+ * Replaces all the funky line terminators with a single newline character.
+ */
+function normalizeLineTerminator(csvString: string, dialect: Dialect = {}): string {
+    // Try to guess line terminator if it's not provided.
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (!dialect.lineTerminator) {
+        return csvString.replace(/(\r\n|\n|\r)/gm, '\n');
+    }
+    // if not return the string untouched.
+<span class="cstat-no" title="statement not covered" >    return csvString;</span>
+}
+&nbsp;
+/**
+ * Converts from the fields and records structure to an array of arrays.
+ * The first row in the output contains the field names in the same order as the input.
+ */
+export function dataToArrays(data: Data): Field[][] {
+    const arrays: Field[][] = [];
+    const fieldIds = data.fields.map(field =&gt; field.id);
+    arrays.push(fieldIds);
+    for (const record of data.records) {
+        const tmp = fieldIds.map(fieldId =&gt; record[fieldId]);
+        arrays.push(tmp);
+    }
+    return arrays;
+}
+&nbsp;
+/**
+ */
+function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
+    // note lower case compared to CSV DDF.
+    const options: NormalizedDialect = {
+        delim: ',',
+        escape: true,
+        lineTerm: '\n',
+        quoteChar: '"',
+        skipRows: 0,
+        trim: true
+    };
+    if (dialect) {
+        if (typeof dialect.fieldDelimiter === 'string') {
+            options.delim = dialect.fieldDelimiter;
+        }
+        if (typeof dialect.escapeEmbeddedQuotes === 'boolean') {
+            options.escape = dialect.escapeEmbeddedQuotes;
+        }
+        if (typeof dialect.lineTerminator === 'string') {
+            options.lineTerm = dialect.lineTerminator;
+        }
+        if (typeof dialect.quoteChar === 'string') {
+            options.quoteChar = dialect.quoteChar;
+        }
+        if (typeof dialect.skipInitialRows === 'number') {
+            options.skipRows = dialect.skipInitialRows;
+        }
+        if (typeof dialect.trimFields === 'boolean') {
+            options.trim = dialect.trimFields;
+        }
+    }
+    return options;
+}
+&nbsp;
+// ## serialize
+//
+// See README for docs
+//
+// Heavily based on uselesscode's JS CSV serializer (MIT Licensed):
+// http://www.uselesscode.org/javascript/csv/
+&nbsp;
+/**
+ * Converts from structured data to a string in CSV format of the specified dialect.
+ */
+export function serialize(data: Data | Field[][], dialect?: Dialect): string {
+    const a: Field[][] = (data instanceof Array) ? data : dataToArrays(data);
+    const options = normalizeDialectOptions(dialect);
+&nbsp;
+    const fieldToString = function fieldToString(field: string | number | null): string {
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (field === null) {
+            // If field is null set to empty string
+<span class="cstat-no" title="statement not covered" >            field = '';</span>
+        }
+        else if (typeof field === "string" &amp;&amp; rxNeedsQuoting.test(field)) {
+            if (options.escape) {
+                // FIXME: May need to be the quote character?
+                field = field.replace(/"/g, '""');
+            }
+            // Convert string to delimited string
+            field = options.quoteChar + field + options.quoteChar;
+        }
+        else if (typeof field === "number") {
+            // Convert number to string
+            field = field.toString(10);
+        }
+&nbsp;
+        return field;
+    };
+&nbsp;
+    /**
+     * Buffer for building up the output.
+     */
+    let outBuffer = '';
+&nbsp;
+    for (let i = 0; i &lt; a.length; i += 1) {
+        /**
+         * The fields we are currently processing.
+         */
+        const fields = a[i];
+&nbsp;
+        /**
+         * Buffer for building up the current row.
+         */
+        let rowBuffer = '';
+&nbsp;
+        for (let j = 0; j &lt; fields.length; j += 1) {
+            /**
+             * Buffer for building up the current field.
+             */
+            let fieldBuffer = fieldToString(fields[j]);
+            // If this is EOR append row to output and flush row
+            if (j === (fields.length - 1)) {
+                rowBuffer += fieldBuffer;
+                outBuffer += rowBuffer + options.lineTerm;
+                rowBuffer = '';
+            }
+            else {
+                // Add the current field to the current row
+                rowBuffer += fieldBuffer + options.delim;
+            }
+        }
+    }
+&nbsp;
+    return outBuffer;
+}
+&nbsp;
+/**
+ * Normalizes the line terminator across the file.
+ */
+function normalizeInputString(csvText: string, dialect?: Dialect) {
+    // When line terminator is not provided then we try to guess it
+    // and normalize it across the file.
+    if (!dialect || (dialect &amp;&amp; !dialect.lineTerminator)) {
+        csvText = normalizeLineTerminator(csvText, dialect);
+    }
+&nbsp;
+    const options = normalizeDialectOptions(dialect);
+&nbsp;
+    // Get rid of any trailing \n
+    return { s: chomp(csvText, options.lineTerm), options };
+}
+&nbsp;
+/**
+ * Parses a string representation of CSV data into an array of arrays of fields.
+ * The dialect may be specified to improve the parsing.
+ */
+export function parse(csvText: string, dialect?: Dialect): Field[][] {
+&nbsp;
+    const { s, options } = normalizeInputString(csvText, dialect);
+    /**
+     * Using cached length of s will improve performance and is safe because s is constant.
+     */
+    const sLength = s.length;
+&nbsp;
+    /**
+     * The character we are currently processing.
+     */
+    let ch = '';
+    let inQuote = false;
+    let fieldQuoted = false;
+&nbsp;
+    /**
+     * The parsed current field
+     */
+    let field: Field = '';
+&nbsp;
+    /**
+     * The parsed row.
+     */
+    let row: Field[] = [];
+&nbsp;
+    /**
+     * The parsed output.
+     */
+    let out: Field[][] = [];
+&nbsp;
+    /**
+     * Helper function to parse a single field.
+     */
+    const parseField = function parseField(fieldAsString: string): string | number | null {
+        if (fieldQuoted) {
+            return fieldAsString;
+        }
+        else {
+            // If field is empty set to null
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (fieldAsString === '') {
+<span class="cstat-no" title="statement not covered" >                return null;</span>
+                // If the field was not quoted and we are trimming fields, trim it
+            }
+            else <span class="missing-if-branch" title="else path not taken" >E</span>if (options.trim) {
+                fieldAsString = trim(fieldAsString);
+            }
+&nbsp;
+            // Convert unquoted numbers to their appropriate types
+            if (rxIsInt.test(fieldAsString)) {
+                return parseInt(fieldAsString, 10);
+            }
+            else if (rxIsFloat.test(fieldAsString)) {
+                return parseFloat(fieldAsString);
+            }
+            else {
+                // An example here is a heading which is not quoted.
+                return fieldAsString;
+            }
+        }
+    };
+&nbsp;
+    for (let i = 0; i &lt; sLength; i += 1) {
+        ch = s.charAt(i);
+&nbsp;
+        // If we are at a EOF or EOR
+        if (inQuote === false &amp;&amp; (ch === options.delim || ch === options.lineTerm)) {
+            field = parseField(field);
+            // Add the current field to the current row
+            row.push(field);
+            // If this is EOR append row to output and flush row
+            if (ch === options.lineTerm) {
+                out.push(row);
+                row = [];
+            }
+            // Flush the field buffer
+            field = '';
+            fieldQuoted = false;
+        }
+        else {
+            // If it's not a quote character, add it to the field buffer
+            if (ch !== options.quoteChar) {
+                field += ch;
+            }
+            else {
+                if (!inQuote) {
+                    // We are not in a quote, start a quote
+                    inQuote = true;
+                    fieldQuoted = true;
+                }
+                else {
+                    // Next char is quote character, this is an escaped quote character.
+                    if (s.charAt(i + 1) === options.quoteChar) {
+                        field += options.quoteChar;
+                        // Skip the next char
+                        i += 1;
+                    }
+                    else {
+                        // It's not escaping, so end quote
+                        inQuote = false;
+                    }
+                }
+            }
+        }
+    }
+&nbsp;
+    // Add the last field
+    field = parseField(field);
+    row.push(field);
+    out.push(row);
+&nbsp;
+    // Expose the ability to discard initial rows
+    if (options.skipRows) out = out.slice(options.skipRows);
+&nbsp;
+    return out;
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Mon May 15 2017 13:33:52 GMT-0400 (EDT)
+</div>
+</div>
+<script src="prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="sorter.js"></script>
+</body>
+</html>

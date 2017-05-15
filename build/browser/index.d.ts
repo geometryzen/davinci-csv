@@ -14,13 +14,17 @@ export as namespace CSV;
  * Comma Separated Value (CSV) Library for JavaScript with TypeScript d.ts files.
  */
 declare namespace CSV {
+    /**
+     * A field in a comma-separated file is either a number, a string, or null.
+     */
+    type Field = number | string | null;
 
     /**
      * A format for relational data.
      */
     interface Data {
         fields: { id: string }[];
-        records: { [fieldId: string]: (number | string | null) }[];
+        records: { [fieldId: string]: Field }[];
     }
 
     /**
@@ -70,18 +74,18 @@ declare namespace CSV {
      * Converts from the fields and records structure to an array of arrays.
      * The first row in the output contains the field names in the same order as the input `data`.
      */
-    function dataToArrays(data: Data): (number | string | null)[][];
+    function dataToArrays(data: Data): Field[][];
 
     /**
      * Parses a string representation of CSV data into an array of arrays, [][]
      * The dialect may be specified to improve the parsing.
      */
-    function parse(csvText: string, dialect?: Dialect): (number | string | null)[][];
+    function parse(csvText: string, dialect?: Dialect): Field[][];
 
     /**
      * Converts from structured data to a string in CSV format of the specified dialect.
      */
-    function serialize(data: Data | (number | string | null)[][], dialect?: Dialect): string;
+    function serialize(data: Data | Field[][], dialect?: Dialect): string;
 }
 
 declare module 'csv' {
