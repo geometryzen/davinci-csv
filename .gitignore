@@ -1,5 +1,5 @@
 .nyc_output
 .vscode
-documentation/
+docs/
 node_modules/
 test/
