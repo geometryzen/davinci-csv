@@ -7,19 +7,19 @@
 /**
  * Regular expression for detecting integers.
  */
-const rxIsInt = /^\d+$/;
+var rxIsInt = /^\d+$/;
 /**
  * Regular expression for detecting floating point numbers (with optional exponents).
  */
-const rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
+var rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
 // If a string has leading or trailing space,
 // contains a comma double quote or a newline
 // it needs to be quoted in CSV output
-const rxNeedsQuoting = /^\s|\s$|,|"|\n/;
+var rxNeedsQuoting = /^\s|\s$|,|"|\n/;
 /**
  * A polyfill in case String.trim does not exist.
  */
-const trim = (function () {
+var trim = (function () {
     // Fx 3.1 has a native trim function, it's about 10x faster, use it if it exists
     if (String.prototype.trim) {
         return function (s) {
@@ -48,7 +48,8 @@ function chomp(s, lineterminator) {
 /**
  * Replaces all the funky line terminators with a single newline character.
  */
-function normalizeLineTerminator(csvString, dialect = {}) {
+function normalizeLineTerminator(csvString, dialect) {
+    if (dialect === void 0) { dialect = {}; }
     // Try to guess line terminator if it's not provided.
     if (!dialect.lineTerminator) {
         return csvString.replace(/(\r\n|\n|\r)/gm, '\n');
@@ -61,12 +62,16 @@ function normalizeLineTerminator(csvString, dialect = {}) {
  * The first row in the output contains the field names in the same order as the input.
  */
 function dataToArrays(data) {
-    const arrays = [];
-    const fieldIds = data.fields.map(field => field.id);
+    var arrays = [];
+    var fieldIds = data.fields.map(function (field) { return field.id; });
     arrays.push(fieldIds);
-    for (const record of data.records) {
-        const tmp = fieldIds.map(fieldId => record[fieldId]);
+    var _loop_1 = function (record) {
+        var tmp = fieldIds.map(function (fieldId) { return record[fieldId]; });
         arrays.push(tmp);
+    };
+    for (var _i = 0, _a = data.records; _i < _a.length; _i++) {
+        var record = _a[_i];
+        _loop_1(record);
     }
     return arrays;
 }
@@ -74,7 +79,7 @@ function dataToArrays(data) {
  */
 function normalizeDialectOptions(dialect) {
     // note lower case compared to CSV DDF.
-    const options = {
+    var options = {
         delim: ',',
         escape: true,
         lineTerm: '\n',
@@ -114,9 +119,9 @@ function normalizeDialectOptions(dialect) {
  * Converts from structured data to a string in CSV format of the specified dialect.
  */
 function serialize(data, dialect) {
-    const a = (data instanceof Array) ? data : dataToArrays(data);
-    const options = normalizeDialectOptions(dialect);
-    const fieldToString = function fieldToString(field) {
+    var a = (data instanceof Array) ? data : dataToArrays(data);
+    var options = normalizeDialectOptions(dialect);
+    var fieldToString = function fieldToString(field) {
         if (field === null) {
             // If field is null set to empty string
             field = '';
@@ -138,21 +143,21 @@ function serialize(data, dialect) {
     /**
      * Buffer for building up the output.
      */
-    let outBuffer = '';
-    for (let i = 0; i < a.length; i += 1) {
+    var outBuffer = '';
+    for (var i = 0; i < a.length; i += 1) {
         /**
          * The fields we are currently processing.
          */
-        const fields = a[i];
+        var fields = a[i];
         /**
          * Buffer for building up the current row.
          */
-        let rowBuffer = '';
-        for (let j = 0; j < fields.length; j += 1) {
+        var rowBuffer = '';
+        for (var j = 0; j < fields.length; j += 1) {
             /**
              * Buffer for building up the current field.
              */
-            let fieldBuffer = fieldToString(fields[j]);
+            var fieldBuffer = fieldToString(fields[j]);
             // If this is EOR append row to output and flush row
             if (j === (fields.length - 1)) {
                 rowBuffer += fieldBuffer;
@@ -176,42 +181,42 @@ function normalizeInputString(csvText, dialect) {
     if (!dialect || (dialect && !dialect.lineTerminator)) {
         csvText = normalizeLineTerminator(csvText, dialect);
     }
-    const options = normalizeDialectOptions(dialect);
+    var options = normalizeDialectOptions(dialect);
     // Get rid of any trailing \n
-    return { s: chomp(csvText, options.lineTerm), options };
+    return { s: chomp(csvText, options.lineTerm), options: options };
 }
 /**
  * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
  */
 function parse(csvText, dialect) {
-    const { s, options } = normalizeInputString(csvText, dialect);
+    var _a = normalizeInputString(csvText, dialect), s = _a.s, options = _a.options;
     /**
      * Using cached length of s will improve performance and is safe because s is constant.
      */
-    const sLength = s.length;
+    var sLength = s.length;
     /**
      * The character we are currently processing.
      */
-    let ch = '';
-    let inQuote = false;
-    let fieldQuoted = false;
+    var ch = '';
+    var inQuote = false;
+    var fieldQuoted = false;
     /**
      * The parsed current field
      */
-    let field = '';
+    var field = '';
     /**
      * The parsed row.
      */
-    let row = [];
+    var row = [];
     /**
      * The parsed output.
      */
-    let out = [];
+    var out = [];
     /**
      * Helper function to parse a single field.
      */
-    const parseField = function parseField(fieldAsString) {
+    var parseField = function parseField(fieldAsString) {
         if (fieldQuoted) {
             return fieldAsString;
         }
@@ -237,7 +242,7 @@ function parse(csvText, dialect) {
             }
         }
     };
-    for (let i = 0; i < sLength; i += 1) {
+    for (var i = 0; i < sLength; i += 1) {
         ch = s.charAt(i);
         // If we are at a EOF or EOR
         if (inQuote === false && (ch === options.delim || ch === options.lineTerm)) {
