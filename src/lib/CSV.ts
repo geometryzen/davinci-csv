@@ -683,6 +683,14 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         state = CsvState.DELIM;
                         break;
                     }
+                    case LF: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
                     default: {
                         const msg = messages[ErrorCode.E003];
                         error(new CSVError(msg.code, msg.desc, i, line, column));
@@ -701,6 +709,14 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         row.push(field);
                         field = '';
                         state = CsvState.DELIM;
+                        break;
+                    }
+                    case LF: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
                         break;
                     }
                     default: {

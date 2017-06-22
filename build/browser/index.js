@@ -633,6 +633,14 @@ function parse(csvText, dialect, errors) {
                         state = CsvState.DELIM;
                         break;
                     }
+                    case LF: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
                     default: {
                         var msg = messages[ErrorCode.E003];
                         error(new CSVError(msg.code, msg.desc, i, line, column));
@@ -651,6 +659,14 @@ function parse(csvText, dialect, errors) {
                         row.push(field);
                         field = '';
                         state = CsvState.DELIM;
+                        break;
+                    }
+                    case LF: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
                         break;
                     }
                     default: {

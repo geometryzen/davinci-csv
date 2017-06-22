@@ -432,6 +432,24 @@ describe("parse", function () {
         ];
         expect(parse(csvText)).toEqual(data);
     });
+    it("Fast Food with quote and LF", function () {
+        const csvText = [
+            '"Sandwich", "Total Fat (g)", "Total Calories"',
+            '"Hamburger", 9, 260'
+        ].join('\n');
+        const errors: CSVError[] = [];
+        parse(csvText, {}, errors);
+        expect(errors.length).toBe(0);
+    });
+    it("Fast Food with apostrophe and LF", function () {
+        const csvText = [
+            "'Sandwich', 'Total Fat (g)', 'Total Calories'",
+            "'Hamburger', 9, 260"
+        ].join('\n');
+        const errors: CSVError[] = [];
+        parse(csvText, {}, errors);
+        expect(errors.length).toBe(0);
+    });
 });
 
 describe("serialize", function () {
