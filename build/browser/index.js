@@ -77,7 +77,7 @@ var CsvState;
     CsvState[CsvState["ISO8601_HHMM"] = 9] = "ISO8601_HHMM";
     CsvState[CsvState["UNQUOTED_STRING"] = 10] = "UNQUOTED_STRING";
     CsvState[CsvState["EXPONENT"] = 11] = "EXPONENT";
-    CsvState[CsvState["NEGATIVE_EXPONENT"] = 12] = "NEGATIVE_EXPONENT";
+    CsvState[CsvState["SIGNED_EXPONENT"] = 12] = "SIGNED_EXPONENT";
     CsvState[CsvState["NEGATIVE_INTEGER"] = 13] = "NEGATIVE_INTEGER";
     CsvState[CsvState["TRAILING_WHITESPACE"] = 14] = "TRAILING_WHITESPACE";
 })(CsvState || (CsvState = {}));
@@ -95,7 +95,7 @@ function decodeState(state) {
         case CsvState.ISO8601_HHMM: return "ISO8601_HHMM";
         case CsvState.UNQUOTED_STRING: return "UNQUOTED_STRING";
         case CsvState.EXPONENT: return "EXPONENT";
-        case CsvState.NEGATIVE_EXPONENT: return "NEGATIVE_EXPONENT";
+        case CsvState.SIGNED_EXPONENT: return "SIGNED_EXPONENT";
         case CsvState.NEGATIVE_INTEGER: return "NEGATIVE_INTEGER";
         case CsvState.TRAILING_WHITESPACE: return "TRAILING_WHITESPACE";
     }
@@ -794,9 +794,10 @@ function parse(csvText, dialect, errors) {
             }
             case CsvState.EXPONENT: {
                 switch (ch) {
-                    case '-': {
+                    case PLUS:
+                    case MINUS: {
                         field += ch;
-                        state = CsvState.NEGATIVE_EXPONENT;
+                        state = CsvState.SIGNED_EXPONENT;
                         break;
                     }
                     case SPACE: {
@@ -826,7 +827,7 @@ function parse(csvText, dialect, errors) {
                 }
                 break;
             }
-            case CsvState.NEGATIVE_EXPONENT: {
+            case CsvState.SIGNED_EXPONENT: {
                 switch (ch) {
                     case SPACE: {
                         field = parseField(field);
@@ -922,7 +923,7 @@ function parse(csvText, dialect, errors) {
             break;
         }
         case CsvState.EXPONENT:
-        case CsvState.NEGATIVE_EXPONENT: {
+        case CsvState.SIGNED_EXPONENT: {
             // Add the last field
             field = parseField(field);
             row.push(field);

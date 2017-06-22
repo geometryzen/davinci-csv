@@ -85,7 +85,7 @@ enum CsvState {
     ISO8601_HHMM = 9,
     UNQUOTED_STRING = 10,
     EXPONENT = 11,
-    NEGATIVE_EXPONENT = 12,
+    SIGNED_EXPONENT = 12,
     NEGATIVE_INTEGER = 13,
     TRAILING_WHITESPACE = 14
 }
@@ -104,7 +104,7 @@ function decodeState(state: CsvState): string {
         case CsvState.ISO8601_HHMM: return "ISO8601_HHMM";
         case CsvState.UNQUOTED_STRING: return "UNQUOTED_STRING";
         case CsvState.EXPONENT: return "EXPONENT";
-        case CsvState.NEGATIVE_EXPONENT: return "NEGATIVE_EXPONENT";
+        case CsvState.SIGNED_EXPONENT: return "SIGNED_EXPONENT";
         case CsvState.NEGATIVE_INTEGER: return "NEGATIVE_INTEGER";
         case CsvState.TRAILING_WHITESPACE: return "TRAILING_WHITESPACE";
     }
@@ -844,9 +844,10 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             }
             case CsvState.EXPONENT: {
                 switch (ch) {
-                    case '-': {
+                    case PLUS:
+                    case MINUS: {
                         field += ch;
-                        state = CsvState.NEGATIVE_EXPONENT;
+                        state = CsvState.SIGNED_EXPONENT;
                         break;
                     }
                     case SPACE: {
@@ -876,7 +877,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                 }
                 break;
             }
-            case CsvState.NEGATIVE_EXPONENT: {
+            case CsvState.SIGNED_EXPONENT: {
                 switch (ch) {
                     case SPACE: {
                         field = parseField(field as string);
@@ -973,7 +974,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             break;
         }
         case CsvState.EXPONENT:
-        case CsvState.NEGATIVE_EXPONENT: {
+        case CsvState.SIGNED_EXPONENT: {
             // Add the last field
             field = parseField(field as string);
             row.push(field);

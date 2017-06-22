@@ -450,6 +450,16 @@ describe("parse", function () {
         parse(csvText, {}, errors);
         expect(errors.length).toBe(0);
     });
+    it("Scientific Notation", function () {
+        const csvText = [
+            '"mass / kg", "number"',
+            '0.1, 1.2e-19',
+            '0.2, 1.2e+19'
+        ].join('\n');
+        const errors: CSVError[] = [];
+        parse(csvText, {}, errors);
+        expect(errors.length).toBe(0);
+    });
 });
 
 describe("serialize", function () {
