@@ -909,6 +909,15 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
+		<li class=" tsd-kind-enum">
+			<a href="enums/errorcode.html" class="tsd-kind-icon">Error<wbr>Code</a>
+		</li>
+		<li class=" tsd-kind-class">
+			<a href="classes/csverror.html" class="tsd-kind-icon">CSVError</a>
+		</li>
+		<li class=" tsd-kind-interface">
+			<a href="interfaces/codeanddesc.html" class="tsd-kind-icon">Code<wbr>And<wbr>Desc</a>
+		</li>
 		<li class=" tsd-kind-interface">
 			<a href="interfaces/data.html" class="tsd-kind-icon">Data</a>
 		</li>
@@ -917,6 +926,9 @@ img { max-width: 100%; }
 		</li>
 		<li class=" tsd-kind-type-alias">
 			<a href="globals.html#field" class="tsd-kind-icon">Field</a>
+		</li>
+		<li class=" tsd-kind-variable">
+			<a href="globals.html#messages" class="tsd-kind-icon">messages</a>
 		</li>
 		<li class=" tsd-kind-function">
 			<a href="globals.html#datatoarrays" class="tsd-kind-icon">data<wbr>ToArrays</a>
@@ -960,8 +972,21 @@ img { max-width: 100%; }
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
+						<h3>Enumerations</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-enum"><a href="enums/errorcode.html" class="tsd-kind-icon">Error<wbr>Code</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Classes</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-class"><a href="classes/csverror.html" class="tsd-kind-icon">CSVError</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
 						<h3>Interfaces</h3>
 						<ul class="tsd-index-list">
+							<li class="tsd-kind-interface"><a href="interfaces/codeanddesc.html" class="tsd-kind-icon">Code<wbr>And<wbr>Desc</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/data.html" class="tsd-kind-icon">Data</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/dialect.html" class="tsd-kind-icon">Dialect</a></li>
 						</ul>
@@ -970,6 +995,12 @@ img { max-width: 100%; }
 						<h3>Type aliases</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-type-alias"><a href="globals.html#field" class="tsd-kind-icon">Field</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Variables</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-variable"><a href="globals.html#messages" class="tsd-kind-icon">messages</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -991,13 +1022,34 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Field<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/4a63e0e/src/lib/CSV.ts#L5">lib/CSV.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/2e9cfb9/src/lib/CSV.ts#L6">lib/CSV.ts:6</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
 						<p>A field in a comma-separated file is either a number, a string, or null.</p>
 					</div>
+				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Variables</h2>
+			<section class="tsd-panel tsd-member tsd-kind-variable">
+				<a name="messages" class="tsd-anchor"></a>
+				<h3>messages</h3>
+				<div class="tsd-signature tsd-kind-icon">messages<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/2e9cfb9/src/lib/messages.ts#L33">lib/messages.ts:33</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-index-signature">
+							<h5><span class="tsd-signature-symbol">[</span>code: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]: </span><a href="interfaces/codeanddesc.html" class="tsd-signature-type">CodeAndDesc</a></h5>
+						</li>
+					</ul>
 				</div>
 			</section>
 		</section>
@@ -1013,7 +1065,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/4a63e0e/src/lib/CSV.ts#L132">lib/CSV.ts:132</a></li>
+								<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/2e9cfb9/src/lib/CSV.ts#L187">lib/CSV.ts:187</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1036,13 +1088,13 @@ img { max-width: 100%; }
 				<a name="parse" class="tsd-anchor"></a>
 				<h3>parse</h3>
 				<ul class="tsd-signatures tsd-kind-function">
-					<li class="tsd-signature tsd-kind-icon">parse<span class="tsd-signature-symbol">(</span>csvText<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, dialect<span class="tsd-signature-symbol">?: </span><a href="interfaces/dialect.html" class="tsd-signature-type">Dialect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#field" class="tsd-signature-type">Field</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></li>
+					<li class="tsd-signature tsd-kind-icon">parse<span class="tsd-signature-symbol">(</span>csvText<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, dialect<span class="tsd-signature-symbol">?: </span><a href="interfaces/dialect.html" class="tsd-signature-type">Dialect</a>, errors<span class="tsd-signature-symbol">?: </span><a href="classes/csverror.html" class="tsd-signature-type">CSVError</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#field" class="tsd-signature-type">Field</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/4a63e0e/src/lib/CSV.ts#L270">lib/CSV.ts:270</a></li>
+								<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/2e9cfb9/src/lib/CSV.ts#L353">lib/CSV.ts:353</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1059,6 +1111,9 @@ img { max-width: 100%; }
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> dialect: <a href="interfaces/dialect.html" class="tsd-signature-type">Dialect</a></h5>
 							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> errors: <a href="classes/csverror.html" class="tsd-signature-type">CSVError</a><span class="tsd-signature-symbol">[]</span></h5>
+							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="globals.html#field" class="tsd-signature-type">Field</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4>
 					</li>
@@ -1074,7 +1129,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/4a63e0e/src/lib/CSV.ts#L188">lib/CSV.ts:188</a></li>
+								<li>Defined in <a href="https://github.com/geometryzen/davinci-csv/blob/2e9cfb9/src/lib/CSV.ts#L271">lib/CSV.ts:271</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
