@@ -1,3 +1,4 @@
+import { CSVError } from './CSVError';
 /**
  * A field in a comma-separated file is either a number, a string, or null.
  */
@@ -22,7 +23,7 @@ export interface Dialect {
      * Default is the comma, </code>','</code>.
      * Used for parsing and serialization.
      */
-    fieldDelimiter?: string;
+    fieldDelimiter?: ',' | ';';
     /**
      * Determines whether embedded quotation marks in strings are escaped during <em>serialization</em> by doubling them.
      * Default is <code>true</code>.
@@ -33,13 +34,13 @@ export interface Dialect {
      * Default is a single newline character, <code>'\n'</code>.
      * Used for parsing and serialization.
      */
-    lineTerminator?: string;
+    lineTerminator?: '\n' | '\r' | '\r\n';
     /**
      * The character used for quoting string fields.
      * Default is the double quote, <code>'"'</code>.
      * Used for parsing and serialization.
      */
-    quoteChar?: string;
+    quoteChar?: '"' | "'";
     /**
      * Skips the specified number of initial rows during <em>parsing</em>.
      * Default is zero, <code>0</code>.
@@ -64,4 +65,4 @@ export declare function serialize(data: Data | Field[][], dialect?: Dialect): st
  * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
  */
-export declare function parse(csvText: string, dialect?: Dialect): Field[][];
+export declare function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): Field[][];

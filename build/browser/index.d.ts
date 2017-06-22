@@ -70,6 +70,15 @@ declare namespace CSV {
         trimFields?: boolean;
     }
 
+    class CSVError {
+        public code: string;
+        public message: string;
+        public index: number;
+        public line: number;
+        public column: number;
+        constructor(code: string, message: string, index: number, line: number, column: number);
+    }
+
     /**
      * Converts from the fields and records structure to an array of arrays.
      * The first row in the output contains the field names in the same order as the input `data`.
@@ -80,7 +89,7 @@ declare namespace CSV {
      * Parses a string representation of CSV data into an array of arrays, [][]
      * The dialect may be specified to improve the parsing.
      */
-    function parse(csvText: string, dialect?: Dialect): Field[][];
+    function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): Field[][];
 
     /**
      * Converts from structured data to a string in CSV format of the specified dialect.

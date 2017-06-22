@@ -4,6 +4,103 @@
 	(factory((global.CSV = global.CSV || {})));
 }(this, (function (exports) { 'use strict';
 
+var CSVError = (function () {
+    function CSVError(code, message, index, line, column) {
+        this.code = code;
+        this.message = message;
+        this.index = index;
+        this.line = line;
+        this.column = column;
+    }
+    return CSVError;
+}());
+
+var ErrorCode;
+(function (ErrorCode) {
+    /**
+     * Unexpected apostrophe.
+     */
+    ErrorCode[ErrorCode["E001"] = 1] = "E001";
+    /**
+     * Unexpected quote.
+     */
+    ErrorCode[ErrorCode["E002"] = 2] = "E002";
+    /**
+     * Unexpected character.
+     */
+    ErrorCode[ErrorCode["E003"] = 3] = "E003";
+    /**
+     * Unexpected digit.
+     */
+    ErrorCode[ErrorCode["E004"] = 4] = "E004";
+    /**
+     * Missing closing apostrophe.
+     */
+    ErrorCode[ErrorCode["E005"] = 5] = "E005";
+    /**
+     * Missing closing quote.
+     */
+    ErrorCode[ErrorCode["E006"] = 6] = "E006";
+})(ErrorCode || (ErrorCode = {}));
+var messages = {};
+messages[ErrorCode.E001] = { code: 'E001', desc: "Unexpected apostrophe." };
+messages[ErrorCode.E002] = { code: 'E002', desc: "Unexpected quote." };
+messages[ErrorCode.E003] = { code: 'E003', desc: "Unexpected character." };
+messages[ErrorCode.E004] = { code: 'E004', desc: "Unexpected digit." };
+messages[ErrorCode.E005] = { code: 'E005', desc: "Missing closing apostrophe." };
+messages[ErrorCode.E006] = { code: 'E006', desc: "Missing closing quote." };
+
+var COMMA = ',';
+var SEMICOLON = ';';
+var CR = '\r';
+var LF = '\n';
+var CRLF = CR + LF;
+var APOS = "'";
+var QUOTE = '"';
+var SPACE = ' ';
+var MINUS = '-';
+var PLUS = '+';
+var CsvState;
+(function (CsvState) {
+    CsvState[CsvState["START"] = 0] = "START";
+    CsvState[CsvState["INTEGER"] = 1] = "INTEGER";
+    CsvState[CsvState["DECIMAL"] = 2] = "DECIMAL";
+    CsvState[CsvState["SCIENTIFIC"] = 3] = "SCIENTIFIC";
+    CsvState[CsvState["APOS_STRING"] = 4] = "APOS_STRING";
+    CsvState[CsvState["APOS_ESCAPE"] = 5] = "APOS_ESCAPE";
+    CsvState[CsvState["QUOTE_STRING"] = 6] = "QUOTE_STRING";
+    CsvState[CsvState["QUOTE_ESCAPE"] = 7] = "QUOTE_ESCAPE";
+    /**
+     * We've just seen the delimiter, usually a comma or a semicolon.
+     */
+    CsvState[CsvState["DELIM"] = 8] = "DELIM";
+    CsvState[CsvState["ISO8601_HHMM"] = 9] = "ISO8601_HHMM";
+    CsvState[CsvState["UNQUOTED_STRING"] = 10] = "UNQUOTED_STRING";
+    CsvState[CsvState["EXPONENT"] = 11] = "EXPONENT";
+    CsvState[CsvState["NEGATIVE_EXPONENT"] = 12] = "NEGATIVE_EXPONENT";
+    CsvState[CsvState["NEGATIVE_INTEGER"] = 13] = "NEGATIVE_INTEGER";
+    CsvState[CsvState["TRAILING_WHITESPACE"] = 14] = "TRAILING_WHITESPACE";
+})(CsvState || (CsvState = {}));
+function decodeState(state) {
+    switch (state) {
+        case CsvState.START: return "START";
+        case CsvState.INTEGER: return "INTEGER";
+        case CsvState.DECIMAL: return "DECIMAL";
+        case CsvState.SCIENTIFIC: return "SCIENTIFIC";
+        case CsvState.APOS_STRING: return "APOS_STRING";
+        case CsvState.APOS_ESCAPE: return "APOS_ESCAPE";
+        case CsvState.QUOTE_STRING: return "QUOTE_STRING";
+        case CsvState.QUOTE_ESCAPE: return "QUOTE_ESCAPE";
+        case CsvState.DELIM: return "DELIM";
+        case CsvState.ISO8601_HHMM: return "ISO8601_HHMM";
+        case CsvState.UNQUOTED_STRING: return "UNQUOTED_STRING";
+        case CsvState.EXPONENT: return "EXPONENT";
+        case CsvState.NEGATIVE_EXPONENT: return "NEGATIVE_EXPONENT";
+        case CsvState.NEGATIVE_INTEGER: return "NEGATIVE_INTEGER";
+        case CsvState.TRAILING_WHITESPACE: return "TRAILING_WHITESPACE";
+    }
+    throw new Error("decodeState(" + state + ")");
+}
 /**
  * Regular expression for detecting integers.
  */
@@ -80,25 +177,53 @@ function dataToArrays(data) {
 function normalizeDialectOptions(dialect) {
     // note lower case compared to CSV DDF.
     var options = {
-        delim: ',',
+        delim: COMMA,
         escape: true,
-        lineTerm: '\n',
-        quoteChar: '"',
+        lineTerm: LF,
+        quoteChar: QUOTE,
         skipRows: 0,
         trim: true
     };
     if (dialect) {
         if (typeof dialect.fieldDelimiter === 'string') {
-            options.delim = dialect.fieldDelimiter;
+            switch (dialect.fieldDelimiter) {
+                case COMMA:
+                case SEMICOLON: {
+                    options.delim = dialect.fieldDelimiter;
+                    break;
+                }
+                default: {
+                    throw new Error("Unexpected dialect field delimiter " + dialect.fieldDelimiter + ".");
+                }
+            }
         }
         if (typeof dialect.escapeEmbeddedQuotes === 'boolean') {
             options.escape = dialect.escapeEmbeddedQuotes;
         }
         if (typeof dialect.lineTerminator === 'string') {
-            options.lineTerm = dialect.lineTerminator;
+            switch (dialect.lineTerminator) {
+                case LF:
+                case CR:
+                case CRLF: {
+                    options.lineTerm = LF;
+                    break;
+                }
+                default: {
+                    throw new Error("Unexpected dialect lineTerminator " + dialect.lineTerminator + ".");
+                }
+            }
         }
         if (typeof dialect.quoteChar === 'string') {
-            options.quoteChar = dialect.quoteChar;
+            switch (dialect.quoteChar) {
+                case APOS:
+                case QUOTE: {
+                    options.quoteChar = dialect.quoteChar;
+                    break;
+                }
+                default: {
+                    throw new Error("Unexpected dialect quoteChar " + dialect.quoteChar + ".");
+                }
+            }
         }
         if (typeof dialect.skipInitialRows === 'number') {
             options.skipRows = dialect.skipInitialRows;
@@ -189,9 +314,11 @@ function normalizeInputString(csvText, dialect) {
  * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
  */
-function parse(csvText, dialect) {
+function parse(csvText, dialect, errors) {
     var _a = normalizeInputString(csvText, dialect), s = _a.s, options = _a.options;
+    var state = CsvState.START;
     /**
+     * The length of the input string following normalization.
      * Using cached length of s will improve performance and is safe because s is constant.
      */
     var sLength = s.length;
@@ -199,8 +326,11 @@ function parse(csvText, dialect) {
      * The character we are currently processing.
      */
     var ch = '';
-    var inQuote = false;
     var fieldQuoted = false;
+    /**
+     * Keep track of where a quotation mark begins for reporting unterminated string literals.
+     */
+    var quoteBegin = Number.MAX_SAFE_INTEGER;
     /**
      * The parsed current field
      */
@@ -213,6 +343,14 @@ function parse(csvText, dialect) {
      * The parsed output.
      */
     var out = [];
+    /**
+     * The 1-based line number.
+     */
+    var line = 1;
+    /**
+     * The zero-based column number.
+     */
+    var column = 0;
     /**
      * Helper function to parse a single field.
      */
@@ -242,52 +380,599 @@ function parse(csvText, dialect) {
             }
         }
     };
-    for (var i = 0; i < sLength; i += 1) {
-        ch = s.charAt(i);
-        // If we are at a EOF or EOR
-        if (inQuote === false && (ch === options.delim || ch === options.lineTerm)) {
-            field = parseField(field);
-            // Add the current field to the current row
-            row.push(field);
-            // If this is EOR append row to output and flush row
-            if (ch === options.lineTerm) {
-                out.push(row);
-                row = [];
-            }
-            // Flush the field buffer
-            field = '';
-            fieldQuoted = false;
+    var error = function (e) {
+        if (errors) {
+            errors.push(e);
         }
         else {
-            // If it's not a quote character, add it to the field buffer
-            if (ch !== options.quoteChar) {
-                field += ch;
+            throw e;
+        }
+    };
+    for (var i = 0; i < sLength; i += 1) {
+        ch = s.charAt(i);
+        switch (state) {
+            case CsvState.START: {
+                switch (ch) {
+                    case ' ': {
+                        // Ignore whitespace.
+                        break;
+                    }
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case QUOTE: {
+                        quoteBegin = i;
+                        state = CsvState.QUOTE_STRING;
+                        break;
+                    }
+                    case APOS: {
+                        state = CsvState.APOS_STRING;
+                        break;
+                    }
+                    case PLUS: {
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case MINUS: {
+                        field += ch;
+                        state = CsvState.NEGATIVE_INTEGER;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        state = CsvState.UNQUOTED_STRING;
+                    }
+                }
+                break;
             }
-            else {
-                if (!inQuote) {
-                    // We are not in a quote, start a quote
-                    inQuote = true;
-                    fieldQuoted = true;
-                }
-                else {
-                    // Next char is quote character, this is an escaped quote character.
-                    if (s.charAt(i + 1) === options.quoteChar) {
-                        field += options.quoteChar;
-                        // Skip the next char
-                        i += 1;
+            case CsvState.INTEGER: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
                     }
-                    else {
-                        // It's not escaping, so end quote
-                        inQuote = false;
+                    case '.': {
+                        field += ch;
+                        state = CsvState.DECIMAL;
+                        break;
+                    }
+                    case ':': {
+                        field += ch;
+                        state = CsvState.ISO8601_HHMM;
+                        break;
+                    }
+                    case 'e': {
+                        field += ch;
+                        state = CsvState.EXPONENT;
+                        break;
+                    }
+                    case COMMA: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    case APOS: {
+                        var msg = messages[ErrorCode.E001];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case QUOTE: {
+                        var msg = messages[ErrorCode.E002];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case SPACE: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    case LF: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        // Do we want to support CRLF?
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
                     }
                 }
+                break;
+            }
+            case CsvState.NEGATIVE_INTEGER: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case '.': {
+                        field += ch;
+                        state = CsvState.DECIMAL;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.DECIMAL: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case 'e': {
+                        field += ch;
+                        state = CsvState.EXPONENT;
+                        break;
+                    }
+                    case options.delim: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    case APOS: {
+                        var msg = messages[ErrorCode.E001];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case QUOTE: {
+                        var msg = messages[ErrorCode.E002];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case SPACE: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.APOS_STRING: {
+                switch (ch) {
+                    case APOS: {
+                        state = CsvState.APOS_ESCAPE;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        break;
+                    }
+                }
+                break;
+            }
+            case CsvState.QUOTE_STRING: {
+                switch (ch) {
+                    case QUOTE: {
+                        state = CsvState.QUOTE_ESCAPE;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        break;
+                    }
+                }
+                break;
+            }
+            case CsvState.QUOTE_ESCAPE: {
+                switch (ch) {
+                    case QUOTE: {
+                        field += ch;
+                        state = CsvState.QUOTE_STRING;
+                        break;
+                    }
+                    case options.delim: {
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.APOS_ESCAPE: {
+                switch (ch) {
+                    case APOS: {
+                        field += ch;
+                        state = CsvState.APOS_STRING;
+                        break;
+                    }
+                    case options.delim: {
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.DELIM: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case SPACE: {
+                        break;
+                    }
+                    case PLUS: {
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case MINUS: {
+                        field += ch;
+                        state = CsvState.NEGATIVE_INTEGER;
+                        break;
+                    }
+                    case QUOTE: {
+                        quoteBegin = i;
+                        state = CsvState.QUOTE_STRING;
+                        break;
+                    }
+                    case APOS: {
+                        quoteBegin = i;
+                        state = CsvState.APOS_STRING;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        state = CsvState.UNQUOTED_STRING;
+                    }
+                }
+                break;
+            }
+            case CsvState.ISO8601_HHMM: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case LF: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        // Do we want to support CRLF?
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.UNQUOTED_STRING: {
+                switch (ch) {
+                    case options.delim: {
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    case LF: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                    }
+                }
+                break;
+            }
+            case CsvState.EXPONENT: {
+                switch (ch) {
+                    case '-': {
+                        field += ch;
+                        state = CsvState.NEGATIVE_EXPONENT;
+                        break;
+                    }
+                    case SPACE: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.NEGATIVE_EXPONENT: {
+                switch (ch) {
+                    case SPACE: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case LF: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.TRAILING_WHITESPACE: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        var msg = messages[ErrorCode.E004];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    default: {
+                        var msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            default: {
+                throw new Error("Unexpected state " + decodeState(state) + " at " + i + " for " + s);
             }
         }
     }
-    // Add the last field
-    field = parseField(field);
-    row.push(field);
-    out.push(row);
+    // We've reached the end of the string.
+    switch (state) {
+        case CsvState.INTEGER: {
+            // Add the last field
+            field = parseField(field);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.DECIMAL: {
+            // Add the last field
+            field = parseField(field);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.EXPONENT:
+        case CsvState.NEGATIVE_EXPONENT: {
+            // Add the last field
+            field = parseField(field);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.APOS_ESCAPE: {
+            // It's not actually an escape that we saw, but the end of the apostrophe delimited string.
+            // Add the last field
+            field = parseField(field);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.QUOTE_ESCAPE: {
+            // It's not actually an escape that we saw, but the end of the quote delimited string.
+            // Add the last field
+            field = parseField(field);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.ISO8601_HHMM: {
+            // Add the last field
+            field = parseField(field);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.DELIM: {
+            row.push(null);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.APOS_STRING: {
+            var msg = messages[ErrorCode.E005];
+            error(new CSVError(msg.code, msg.desc, quoteBegin, line, column));
+            break;
+        }
+        case CsvState.QUOTE_STRING: {
+            var msg = messages[ErrorCode.E006];
+            error(new CSVError(msg.code, msg.desc, quoteBegin, line, column));
+            break;
+        }
+        case CsvState.START: {
+            // Do nothing?
+            break;
+        }
+        case CsvState.TRAILING_WHITESPACE: {
+            // Do nothing?
+            break;
+        }
+        default: {
+            throw new Error("Unexpected end state " + decodeState(state) + " " + s);
+        }
+    }
     // Expose the ability to discard initial rows
     if (options.skipRows)
         out = out.slice(options.skipRows);
@@ -297,6 +982,7 @@ function parse(csvText, dialect) {
 exports.dataToArrays = dataToArrays;
 exports.parse = parse;
 exports.serialize = serialize;
+exports.CSVError = CSVError;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

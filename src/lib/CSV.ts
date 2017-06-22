@@ -1,4 +1,5 @@
-
+import { CSVError } from './CSVError';
+import { messages, ErrorCode } from './messages';
 /**
  * A field in a comma-separated file is either a number, a string, or null.
  */
@@ -21,7 +22,7 @@ export interface Dialect {
      * Default is the comma, </code>','</code>.
      * Used for parsing and serialization.
      */
-    fieldDelimiter?: string;
+    fieldDelimiter?: ',' | ';';
 
     /**
      * Determines whether embedded quotation marks in strings are escaped during <em>serialization</em> by doubling them.
@@ -34,14 +35,14 @@ export interface Dialect {
      * Default is a single newline character, <code>'\n'</code>.
      * Used for parsing and serialization.
      */
-    lineTerminator?: string;
+    lineTerminator?: '\n' | '\r' | '\r\n';
 
     /**
      * The character used for quoting string fields.
      * Default is the double quote, <code>'"'</code>.
      * Used for parsing and serialization.
      */
-    quoteChar?: string;
+    quoteChar?: '"' | "'";
 
     /**
      * Skips the specified number of initial rows during <em>parsing</em>.
@@ -56,14 +57,68 @@ export interface Dialect {
     trimFields?: boolean;
 }
 
+const COMMA = ',';
+const SEMICOLON = ';';
+
+const CR = '\r';
+const LF = '\n';
+const CRLF = CR + LF;
+const APOS = "'";
+const QUOTE = '"';
+const SPACE = ' ';
+const MINUS = '-';
+const PLUS = '+';
+
+enum CsvState {
+    START = 0,
+    INTEGER = 1,
+    DECIMAL = 2,
+    SCIENTIFIC = 3,
+    APOS_STRING = 4,
+    APOS_ESCAPE = 5,
+    QUOTE_STRING = 6,
+    QUOTE_ESCAPE = 7,
+    /**
+     * We've just seen the delimiter, usually a comma or a semicolon.
+     */
+    DELIM = 8,
+    ISO8601_HHMM = 9,
+    UNQUOTED_STRING = 10,
+    EXPONENT = 11,
+    NEGATIVE_EXPONENT = 12,
+    NEGATIVE_INTEGER = 13,
+    TRAILING_WHITESPACE = 14
+}
+
+function decodeState(state: CsvState): string {
+    switch (state) {
+        case CsvState.START: return "START";
+        case CsvState.INTEGER: return "INTEGER";
+        case CsvState.DECIMAL: return "DECIMAL";
+        case CsvState.SCIENTIFIC: return "SCIENTIFIC";
+        case CsvState.APOS_STRING: return "APOS_STRING";
+        case CsvState.APOS_ESCAPE: return "APOS_ESCAPE";
+        case CsvState.QUOTE_STRING: return "QUOTE_STRING";
+        case CsvState.QUOTE_ESCAPE: return "QUOTE_ESCAPE";
+        case CsvState.DELIM: return "DELIM";
+        case CsvState.ISO8601_HHMM: return "ISO8601_HHMM";
+        case CsvState.UNQUOTED_STRING: return "UNQUOTED_STRING";
+        case CsvState.EXPONENT: return "EXPONENT";
+        case CsvState.NEGATIVE_EXPONENT: return "NEGATIVE_EXPONENT";
+        case CsvState.NEGATIVE_INTEGER: return "NEGATIVE_INTEGER";
+        case CsvState.TRAILING_WHITESPACE: return "TRAILING_WHITESPACE";
+    }
+    throw new Error(`decodeState(${state})`);
+}
+
 /**
  * For internal conceptual integrity.
  */
 interface NormalizedDialect {
-    delim: string;
+    delim: ',' | ';';
     escape: boolean;
-    lineTerm: string;
-    quoteChar: string;
+    lineTerm: '\n';
+    quoteChar: '"' | "'";
     skipRows: number;
     trim: boolean;
 }
@@ -145,25 +200,53 @@ export function dataToArrays(data: Data): Field[][] {
 function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
     // note lower case compared to CSV DDF.
     const options: NormalizedDialect = {
-        delim: ',',
+        delim: COMMA,
         escape: true,
-        lineTerm: '\n',
-        quoteChar: '"',
+        lineTerm: LF,
+        quoteChar: QUOTE,
         skipRows: 0,
         trim: true
     };
     if (dialect) {
         if (typeof dialect.fieldDelimiter === 'string') {
-            options.delim = dialect.fieldDelimiter;
+            switch (dialect.fieldDelimiter) {
+                case COMMA:
+                case SEMICOLON: {
+                    options.delim = dialect.fieldDelimiter;
+                    break;
+                }
+                default: {
+                    throw new Error(`Unexpected dialect field delimiter ${dialect.fieldDelimiter}.`);
+                }
+            }
         }
         if (typeof dialect.escapeEmbeddedQuotes === 'boolean') {
             options.escape = dialect.escapeEmbeddedQuotes;
         }
         if (typeof dialect.lineTerminator === 'string') {
-            options.lineTerm = dialect.lineTerminator;
+            switch (dialect.lineTerminator) {
+                case LF:
+                case CR:
+                case CRLF: {
+                    options.lineTerm = LF;
+                    break;
+                }
+                default: {
+                    throw new Error(`Unexpected dialect lineTerminator ${dialect.lineTerminator}.`);
+                }
+            }
         }
         if (typeof dialect.quoteChar === 'string') {
-            options.quoteChar = dialect.quoteChar;
+            switch (dialect.quoteChar) {
+                case APOS:
+                case QUOTE: {
+                    options.quoteChar = dialect.quoteChar;
+                    break;
+                }
+                default: {
+                    throw new Error(`Unexpected dialect quoteChar ${dialect.quoteChar}.`);
+                }
+            }
         }
         if (typeof dialect.skipInitialRows === 'number') {
             options.skipRows = dialect.skipInitialRows;
@@ -267,10 +350,13 @@ function normalizeInputString(csvText: string, dialect?: Dialect) {
  * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
  */
-export function parse(csvText: string, dialect?: Dialect): Field[][] {
+export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): Field[][] {
 
     const { s, options } = normalizeInputString(csvText, dialect);
+
+    let state: CsvState = CsvState.START;
     /**
+     * The length of the input string following normalization.
      * Using cached length of s will improve performance and is safe because s is constant.
      */
     const sLength = s.length;
@@ -279,8 +365,12 @@ export function parse(csvText: string, dialect?: Dialect): Field[][] {
      * The character we are currently processing.
      */
     let ch = '';
-    let inQuote = false;
+
     let fieldQuoted = false;
+    /**
+     * Keep track of where a quotation mark begins for reporting unterminated string literals.
+     */
+    let quoteBegin = Number.MAX_SAFE_INTEGER;
 
     /**
      * The parsed current field
@@ -296,6 +386,16 @@ export function parse(csvText: string, dialect?: Dialect): Field[][] {
      * The parsed output.
      */
     let out: Field[][] = [];
+
+    /**
+     * The 1-based line number.
+     */
+    let line = 1;
+
+    /**
+     * The zero-based column number.
+     */
+    let column = 0;
 
     /**
      * Helper function to parse a single field.
@@ -328,54 +428,602 @@ export function parse(csvText: string, dialect?: Dialect): Field[][] {
         }
     };
 
+    const error = function (e: CSVError) {
+        if (errors) {
+            errors.push(e);
+        }
+        else {
+            throw e;
+        }
+    };
+
     for (let i = 0; i < sLength; i += 1) {
         ch = s.charAt(i);
 
-        // If we are at a EOF or EOR
-        if (inQuote === false && (ch === options.delim || ch === options.lineTerm)) {
-            field = parseField(field);
-            // Add the current field to the current row
-            row.push(field);
-            // If this is EOR append row to output and flush row
-            if (ch === options.lineTerm) {
-                out.push(row);
-                row = [];
-            }
-            // Flush the field buffer
-            field = '';
-            fieldQuoted = false;
-        }
-        else {
-            // If it's not a quote character, add it to the field buffer
-            if (ch !== options.quoteChar) {
-                field += ch;
-            }
-            else {
-                if (!inQuote) {
-                    // We are not in a quote, start a quote
-                    inQuote = true;
-                    fieldQuoted = true;
-                }
-                else {
-                    // Next char is quote character, this is an escaped quote character.
-                    if (s.charAt(i + 1) === options.quoteChar) {
-                        field += options.quoteChar;
-                        // Skip the next char
-                        i += 1;
+        switch (state) {
+            case CsvState.START: {
+                switch (ch) {
+                    case ' ': {
+                        // Ignore whitespace.
+                        break;
                     }
-                    else {
-                        // It's not escaping, so end quote
-                        inQuote = false;
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case QUOTE: {
+                        quoteBegin = i;
+                        state = CsvState.QUOTE_STRING;
+                        break;
+                    }
+                    case APOS: {
+                        state = CsvState.APOS_STRING;
+                        break;
+                    }
+                    case PLUS: {
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case MINUS: {
+                        field += ch;
+                        state = CsvState.NEGATIVE_INTEGER;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        state = CsvState.UNQUOTED_STRING;
                     }
                 }
+                break;
+            }
+            case CsvState.INTEGER: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case '.': {
+                        field += ch;
+                        state = CsvState.DECIMAL;
+                        break;
+                    }
+                    case ':': {
+                        field += ch;
+                        state = CsvState.ISO8601_HHMM;
+                        break;
+                    }
+                    case 'e': {
+                        field += ch;
+                        state = CsvState.EXPONENT;
+                        break;
+                    }
+                    case COMMA: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    case APOS: {
+                        const msg = messages[ErrorCode.E001];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case QUOTE: {
+                        const msg = messages[ErrorCode.E002];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case SPACE: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    case LF: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        // Do we want to support CRLF?
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.NEGATIVE_INTEGER: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case '.': {
+                        field += ch;
+                        state = CsvState.DECIMAL;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.DECIMAL: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case 'e': {
+                        field += ch;
+                        state = CsvState.EXPONENT;
+                        break;
+                    }
+                    case options.delim: {
+                        field = parseField(field);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    case APOS: {
+                        const msg = messages[ErrorCode.E001];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case QUOTE: {
+                        const msg = messages[ErrorCode.E002];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    case SPACE: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.APOS_STRING: {
+                switch (ch) {
+                    case APOS: {
+                        state = CsvState.APOS_ESCAPE;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        break;
+                    }
+                }
+                break;
+            }
+            case CsvState.QUOTE_STRING: {
+                switch (ch) {
+                    case QUOTE: {
+                        state = CsvState.QUOTE_ESCAPE;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        break;
+                    }
+                }
+                break;
+            }
+            case CsvState.QUOTE_ESCAPE: {
+                switch (ch) {
+                    case QUOTE: {
+                        field += ch;
+                        state = CsvState.QUOTE_STRING;
+                        break;
+                    }
+                    case options.delim: {
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.APOS_ESCAPE: {
+                switch (ch) {
+                    case APOS: {
+                        field += ch;
+                        state = CsvState.APOS_STRING;
+                        break;
+                    }
+                    case options.delim: {
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.DELIM: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case SPACE: {
+                        break;
+                    }
+                    case PLUS: {
+                        state = CsvState.INTEGER;
+                        break;
+                    }
+                    case MINUS: {
+                        field += ch;
+                        state = CsvState.NEGATIVE_INTEGER;
+                        break;
+                    }
+                    case QUOTE: {
+                        quoteBegin = i;
+                        state = CsvState.QUOTE_STRING;
+                        break;
+                    }
+                    case APOS: {
+                        quoteBegin = i;
+                        state = CsvState.APOS_STRING;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                        state = CsvState.UNQUOTED_STRING;
+                    }
+                }
+                break;
+            }
+            case CsvState.ISO8601_HHMM: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case LF: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        // Do we want to support CRLF?
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.UNQUOTED_STRING: {
+                switch (ch) {
+                    case options.delim: {
+                        row.push(field);
+                        field = '';
+                        state = CsvState.DELIM;
+                        break;
+                    }
+                    case LF: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        field += ch;
+                    }
+                }
+                break;
+            }
+            case CsvState.EXPONENT: {
+                switch (ch) {
+                    case '-': {
+                        field += ch;
+                        state = CsvState.NEGATIVE_EXPONENT;
+                        break;
+                    }
+                    case SPACE: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.NEGATIVE_EXPONENT: {
+                switch (ch) {
+                    case SPACE: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        state = CsvState.TRAILING_WHITESPACE;
+                        break;
+                    }
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        field += ch;
+                        break;
+                    }
+                    case LF: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    case CR: {
+                        field = parseField(field as string);
+                        row.push(field);
+                        field = '';
+                        out.push(row);
+                        row = [];
+                        state = CsvState.START;
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            case CsvState.TRAILING_WHITESPACE: {
+                switch (ch) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9': {
+                        const msg = messages[ErrorCode.E004];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                        break;
+                    }
+                    default: {
+                        const msg = messages[ErrorCode.E003];
+                        error(new CSVError(msg.code, msg.desc, i, line, column));
+                    }
+                }
+                break;
+            }
+            default: {
+                throw new Error(`Unexpected state ${decodeState(state)} at ${i} for ${s}`);
             }
         }
     }
 
-    // Add the last field
-    field = parseField(field);
-    row.push(field);
-    out.push(row);
+    // We've reached the end of the string.
+    switch (state) {
+        case CsvState.INTEGER: {
+            // Add the last field
+            field = parseField(field as string);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.DECIMAL: {
+            // Add the last field
+            field = parseField(field as string);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.EXPONENT:
+        case CsvState.NEGATIVE_EXPONENT: {
+            // Add the last field
+            field = parseField(field as string);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.APOS_ESCAPE: {
+            // It's not actually an escape that we saw, but the end of the apostrophe delimited string.
+            // Add the last field
+            field = parseField(field as string);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.QUOTE_ESCAPE: {
+            // It's not actually an escape that we saw, but the end of the quote delimited string.
+            // Add the last field
+            field = parseField(field as string);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.ISO8601_HHMM: {
+            // Add the last field
+            field = parseField(field as string);
+            row.push(field);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.DELIM: {
+            row.push(null);
+            field = '';
+            out.push(row);
+            row = [];
+            break;
+        }
+        case CsvState.APOS_STRING: {
+            const msg = messages[ErrorCode.E005];
+            error(new CSVError(msg.code, msg.desc, quoteBegin, line, column));
+            break;
+        }
+        case CsvState.QUOTE_STRING: {
+            const msg = messages[ErrorCode.E006];
+            error(new CSVError(msg.code, msg.desc, quoteBegin, line, column));
+            break;
+        }
+        case CsvState.START: {
+            // Do nothing?
+            break;
+        }
+        case CsvState.TRAILING_WHITESPACE: {
+            // Do nothing?
+            break;
+        }
+        default: {
+            throw new Error(`Unexpected end state ${decodeState(state)} ${s}`);
+        }
+    }
 
     // Expose the ability to discard initial rows
     if (options.skipRows) out = out.slice(options.skipRows);
