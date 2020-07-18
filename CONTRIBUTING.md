@@ -21,28 +21,8 @@ npm update
 ```
 to install the tooling dependencies (For this you need to have [Node.js](http://nodejs.org) installed).
 
-Install Bower:
 ```
-bower install
-bower update
-```
-to install the software dependencies (For this you need to have [Bower](http://bower.io) installed).
-
-Install JSPM:
-```
-jspm install
-jspm update
-```
-to install JSPM, used for testing.
-
-Install TypeScript definitions:
-```
-tsd install
-```
-to install TypeScript definitions for Jasmine used in testing.
-
-```
-grunt
+npm run build
 ```
 to compile the source using the TypeScript compiler (For this you need to have [TypeScript](http://www.typescriptlang.org) installed) and to package the individual files into a single JavaScript file.
 
@@ -53,7 +33,7 @@ Make your changes to the TypeScript files in the _src_ directory. Do not edit th
 ## Testing
 
 ```
-karma start
+npm run test
 ```
 
 ## Versioning
@@ -61,9 +41,8 @@ karma start
 The following files should be changed.
 
 ```
-src/davinci-csv/config.ts
+src/index.d.ts
 package.json
-bower.json
 ```
 
 ## Git

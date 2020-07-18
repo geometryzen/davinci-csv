@@ -22,7 +22,7 @@ export declare enum ErrorCode {
     /**
      * Missing closing quote.
      */
-    E006 = 6,
+    E006 = 6
 }
 export interface CodeAndDesc {
     code: string;

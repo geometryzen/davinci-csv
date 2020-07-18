@@ -1,4 +1,4 @@
-// Type definitions for davinci-csv 0.9.2
+// Type definitions for davinci-csv 1.0.0
 // Project: https://github.com/geometryzen/davinci-csv
 // Definitions by: David Geo Holmes david.geo.holmes@gmail.com https://www.stemcstudio.com
 

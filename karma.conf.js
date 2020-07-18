@@ -85,7 +85,7 @@ module.exports = function (config) {
     // browsers: ['Chrome'],
     // PhantomJS does not currently support some es2015 JavaScript features such as defaults for arguments.
     // So testing in PhantomJS has the benefit of better assurance of compatibility.
-    browsers: ['PhantomJS'],
+    browsers: ['Chrome'],
 
 
     // Continuous Integration mode

@@ -1,4 +1,4 @@
-var CSVError = (function () {
+var CSVError = /** @class */ (function () {
     function CSVError(code, message, index, line, column) {
         this.code = code;
         this.message = message;

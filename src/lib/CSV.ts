@@ -139,22 +139,6 @@ const rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
 const rxNeedsQuoting = /^\s|\s$|,|"|\n/;
 
 /**
- * A polyfill in case String.trim does not exist.
- */
-const trim = (function () {
-    // Fx 3.1 has a native trim function, it's about 10x faster, use it if it exists
-    if (String.prototype.trim) {
-        return function (s: string) {
-            return s.trim();
-        };
-    } else {
-        return function (s: string) {
-            return s.replace(/^\s*/, '').replace(/\s*$/, '');
-        };
-    }
-}());
-
-/**
  *
  */
 function chomp(s: string, lineterminator: string): string {
@@ -272,7 +256,7 @@ export function serialize(data: Data | Field[][], dialect?: Dialect): string {
     const a: Field[][] = (data instanceof Array) ? data : dataToArrays(data);
     const options = normalizeDialectOptions(dialect);
 
-    const fieldToString = function fieldToString(field: string | number | null): string {
+    const fieldToString = function (field: string | number | null): string {
         if (field === null) {
             // If field is null set to empty string
             field = '';
@@ -400,7 +384,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
     /**
      * Helper function to parse a single field.
      */
-    const parseField = function parseField(fieldAsString: string): string | number | null {
+    const parseField = function (fieldAsString: string): string | number | null {
         if (fieldQuoted) {
             return fieldAsString;
         }
@@ -411,7 +395,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                 // If the field was not quoted and we are trimming fields, trim it
             }
             else if (options.trim) {
-                fieldAsString = trim(fieldAsString);
+                fieldAsString = fieldAsString.trim();
             }
 
             // Convert unquoted numbers to their appropriate types
