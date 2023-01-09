@@ -1,39 +1,26 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "outDir": "test",
-        "rootDir": "src",
-        "moduleResolution": "node",
-        "module": "commonjs",
-        "declaration": false,
-        "importHelpers": true,
-        "inlineSourceMap": true,
-        "listFiles": false,
-        "traceResolution": false,
-        "pretty": true,
-        "strictNullChecks": true,
-        "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": true,
+        "target": "es2022",
+        "module": "es6",
+        "sourceMap": true,
+        "outDir": "build",
+        "strict": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "lib": [
-            "es6"
-        ],
-        "types": [
-            "node"
-        ]
+        "noUnusedParameters": false,
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "strictNullChecks": false,
+        "declaration": true,
+        "declarationDir": "types",
+        "emitDeclarationOnly": true
     },
-    "files": [
-        "typings/jasmine/jasmine.d.ts"
-    ],
-    "include": [
-        "src/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules/**"
-    ],
-    "compileOnSave": false
+    "lib": [
+        "es2015",
+        "dom"
+    ]
 }

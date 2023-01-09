@@ -1,19 +1,11 @@
 {
-    "mode": "file",
+    "entryPoints": [
+        "src/index.ts"
+    ],
     "out": "docs",
-    "excludeNotExported": true,
+    "exclude": [
+        "src/**/*.spec.ts"
+    ],
     "excludePrivate": true,
-    "theme": "minimal",
-    "toc": [
-        "ErrorCode",
-        "CSVError",
-        "CodeAndDesc",
-        "Data",
-        "Dialect",
-        "Field",
-        "messages",
-        "dataToArrays",
-        "parse",
-        "serialize"
-    ]
+    "theme": "default"
 }

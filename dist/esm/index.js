@@ -1,65 +1,55 @@
-import { CSVError } from './CSVError';
-import { ErrorCode, messages } from './messages';
-/**
- * A field in a comma-separated file is either a number, a string, or null.
- */
-export type Field = number | string | null;
-
-/**
- * A format for relational data.
- */
-export interface Data {
-    fields: { id: string }[];
-    records: { [fieldId: string]: Field }[];
+class CSVError {
+    code;
+    message;
+    index;
+    line;
+    column;
+    constructor(code, message, index, line, column) {
+        this.code = code;
+        this.message = message;
+        this.index = index;
+        this.line = line;
+        this.column = column;
+    }
 }
 
-/**
- * Options used for customizing parsing and serialization.
- */
-export interface Dialect {
+var ErrorCode;
+(function (ErrorCode) {
     /**
-     * Specifies the delimiter between fields.
-     * Default is the comma, </code>','</code>.
-     * Used for parsing and serialization.
+     * Unexpected apostrophe.
      */
-    fieldDelimiter?: ',' | ';';
-
+    ErrorCode[ErrorCode["E001"] = 1] = "E001";
     /**
-     * Determines whether embedded quotation marks in strings are escaped during <em>serialization</em> by doubling them.
-     * Default is <code>true</code>.
+     * Unexpected quote.
      */
-    escapeEmbeddedQuotes?: boolean;
-
+    ErrorCode[ErrorCode["E002"] = 2] = "E002";
     /**
-     * Specifies the character used to terminate a line.
-     * Default is a single newline character, <code>'\n'</code>.
-     * Used for parsing and serialization.
+     * Unexpected character.
      */
-    lineTerminator?: '\n' | '\r' | '\r\n';
-
+    ErrorCode[ErrorCode["E003"] = 3] = "E003";
     /**
-     * The character used for quoting string fields.
-     * Default is the double quote, <code>'"'</code>.
-     * Used for parsing and serialization.
+     * Unexpected digit.
      */
-    quoteChar?: '"' | "'";
-
+    ErrorCode[ErrorCode["E004"] = 4] = "E004";
     /**
-     * Skips the specified number of initial rows during <em>parsing</em>.
-     * Default is zero, <code>0</code>.
+     * Missing closing apostrophe.
      */
-    skipInitialRows?: number;
-
+    ErrorCode[ErrorCode["E005"] = 5] = "E005";
     /**
-     * Determines whether fields are trimmed during <em>parsing</em>.
-     * Default is <code>true</code>.
+     * Missing closing quote.
      */
-    trimFields?: boolean;
-}
+    ErrorCode[ErrorCode["E006"] = 6] = "E006";
+})(ErrorCode || (ErrorCode = {}));
+const messages = {};
+messages[ErrorCode.E001] = { code: 'E001', desc: "Unexpected apostrophe." };
+messages[ErrorCode.E002] = { code: 'E002', desc: "Unexpected quote." };
+messages[ErrorCode.E003] = { code: 'E003', desc: "Unexpected character." };
+messages[ErrorCode.E004] = { code: 'E004', desc: "Unexpected digit." };
+messages[ErrorCode.E005] = { code: 'E005', desc: "Missing closing apostrophe." };
+messages[ErrorCode.E006] = { code: 'E006', desc: "Missing closing quote." };
 
 const COMMA = ',';
 const SEMICOLON = ';';
-
 const CR = '\r';
 const LF = '\n';
 const CRLF = CR + LF;
@@ -68,29 +58,28 @@ const QUOTE = '"';
 const SPACE = ' ';
 const MINUS = '-';
 const PLUS = '+';
-
-enum CsvState {
-    START = 0,
-    INTEGER = 1,
-    DECIMAL = 2,
-    SCIENTIFIC = 3,
-    APOS_STRING = 4,
-    APOS_ESCAPE = 5,
-    QUOTE_STRING = 6,
-    QUOTE_ESCAPE = 7,
+var CsvState;
+(function (CsvState) {
+    CsvState[CsvState["START"] = 0] = "START";
+    CsvState[CsvState["INTEGER"] = 1] = "INTEGER";
+    CsvState[CsvState["DECIMAL"] = 2] = "DECIMAL";
+    CsvState[CsvState["SCIENTIFIC"] = 3] = "SCIENTIFIC";
+    CsvState[CsvState["APOS_STRING"] = 4] = "APOS_STRING";
+    CsvState[CsvState["APOS_ESCAPE"] = 5] = "APOS_ESCAPE";
+    CsvState[CsvState["QUOTE_STRING"] = 6] = "QUOTE_STRING";
+    CsvState[CsvState["QUOTE_ESCAPE"] = 7] = "QUOTE_ESCAPE";
     /**
      * We've just seen the delimiter, usually a comma or a semicolon.
      */
-    DELIM = 8,
-    ISO8601_HHMM = 9,
-    UNQUOTED_STRING = 10,
-    EXPONENT = 11,
-    SIGNED_EXPONENT = 12,
-    NEGATIVE_INTEGER = 13,
-    TRAILING_WHITESPACE = 14
-}
-
-function decodeState(state: CsvState): string {
+    CsvState[CsvState["DELIM"] = 8] = "DELIM";
+    CsvState[CsvState["ISO8601_HHMM"] = 9] = "ISO8601_HHMM";
+    CsvState[CsvState["UNQUOTED_STRING"] = 10] = "UNQUOTED_STRING";
+    CsvState[CsvState["EXPONENT"] = 11] = "EXPONENT";
+    CsvState[CsvState["SIGNED_EXPONENT"] = 12] = "SIGNED_EXPONENT";
+    CsvState[CsvState["NEGATIVE_INTEGER"] = 13] = "NEGATIVE_INTEGER";
+    CsvState[CsvState["TRAILING_WHITESPACE"] = 14] = "TRAILING_WHITESPACE";
+})(CsvState || (CsvState = {}));
+function decodeState(state) {
     switch (state) {
         case CsvState.START: return "START";
         case CsvState.INTEGER: return "INTEGER";
@@ -110,38 +99,22 @@ function decodeState(state: CsvState): string {
     }
     throw new Error(`decodeState(${state})`);
 }
-
-/**
- * For internal conceptual integrity.
- */
-interface NormalizedDialect {
-    delim: ',' | ';';
-    escape: boolean;
-    lineTerm: '\n';
-    quoteChar: '"' | "'";
-    skipRows: number;
-    trim: boolean;
-}
-
 /**
  * Regular expression for detecting integers.
  */
 const rxIsInt = /^\d+$/;
-
 /**
  * Regular expression for detecting floating point numbers (with optional exponents).
  */
 const rxIsFloat = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
-
 // If a string has leading or trailing space,
 // contains a comma double quote or a newline
 // it needs to be quoted in CSV output
 const rxNeedsQuoting = /^\s|\s$|,|"|\n/;
-
 /**
  *
  */
-function chomp(s: string, lineterminator: string): string {
+function chomp(s, lineterminator) {
     if (s.charAt(s.length - lineterminator.length) !== lineterminator) {
         // Does not end with \n, just return string.
         return s;
@@ -151,11 +124,10 @@ function chomp(s: string, lineterminator: string): string {
         return s.substring(0, s.length - lineterminator.length);
     }
 }
-
 /**
  * Replaces all the funky line terminators with a single newline character.
  */
-function normalizeLineTerminator(csvString: string, dialect: Dialect = {}): string {
+function normalizeLineTerminator(csvString, dialect = {}) {
     // Try to guess line terminator if it's not provided.
     if (!dialect.lineTerminator) {
         return csvString.replace(/(\r\n|\n|\r)/gm, '\n');
@@ -163,13 +135,12 @@ function normalizeLineTerminator(csvString: string, dialect: Dialect = {}): stri
     // if not return the string untouched.
     return csvString;
 }
-
 /**
  * Converts from the fields and records structure to an array of arrays.
  * The first row in the output contains the field names in the same order as the input.
  */
-export function dataToArrays(data: Data): Field[][] {
-    const arrays: Field[][] = [];
+function dataToArrays(data) {
+    const arrays = [];
     const fieldIds = data.fields.map(field => field.id);
     arrays.push(fieldIds);
     for (const record of data.records) {
@@ -178,12 +149,11 @@ export function dataToArrays(data: Data): Field[][] {
     }
     return arrays;
 }
-
 /**
  */
-function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
+function normalizeDialectOptions(dialect) {
     // note lower case compared to CSV DDF.
-    const options: NormalizedDialect = {
+    const options = {
         delim: COMMA,
         escape: true,
         lineTerm: LF,
@@ -241,22 +211,19 @@ function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
     }
     return options;
 }
-
 // ## serialize
 //
 // See README for docs
 //
 // Heavily based on uselesscode's JS CSV serializer (MIT Licensed):
 // http://www.uselesscode.org/javascript/csv/
-
 /**
  * Converts from structured data to a string in CSV format of the specified dialect.
  */
-export function serialize(data: Data | Field[][], dialect?: Dialect): string {
-    const a: Field[][] = (data instanceof Array) ? data : dataToArrays(data);
+function serialize(data, dialect) {
+    const a = (data instanceof Array) ? data : dataToArrays(data);
     const options = normalizeDialectOptions(dialect);
-
-    const fieldToString = function (field: string | number | null): string {
+    const fieldToString = function (field) {
         if (field === null) {
             // If field is null set to empty string
             field = '';
@@ -273,26 +240,21 @@ export function serialize(data: Data | Field[][], dialect?: Dialect): string {
             // Convert number to string
             field = field.toString(10);
         }
-
         return field;
     };
-
     /**
      * Buffer for building up the output.
      */
     let outBuffer = '';
-
     for (let i = 0; i < a.length; i += 1) {
         /**
          * The fields we are currently processing.
          */
         const fields = a[i];
-
         /**
          * Buffer for building up the current row.
          */
         let rowBuffer = '';
-
         for (let j = 0; j < fields.length; j += 1) {
             /**
              * Buffer for building up the current field.
@@ -310,85 +272,66 @@ export function serialize(data: Data | Field[][], dialect?: Dialect): string {
             }
         }
     }
-
     return outBuffer;
 }
-
 /**
  * Normalizes the line terminator across the file.
  */
-function normalizeInputString(csvText: string, dialect?: Dialect) {
+function normalizeInputString(csvText, dialect) {
     // When line terminator is not provided then we try to guess it
     // and normalize it across the file.
     if (!dialect || (dialect && !dialect.lineTerminator)) {
         csvText = normalizeLineTerminator(csvText, dialect);
     }
-
     const options = normalizeDialectOptions(dialect);
-
     // Get rid of any trailing \n
     return { s: chomp(csvText, options.lineTerm), options };
 }
-
 /**
  * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
  */
-export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): Field[][] {
-
+function parse(csvText, dialect, errors) {
     const { s, options } = normalizeInputString(csvText, dialect);
-
-    let state: CsvState = CsvState.START;
+    let state = CsvState.START;
     /**
      * The length of the input string following normalization.
      * Using cached length of s will improve performance and is safe because s is constant.
      */
     const sLength = s.length;
-
     /**
      * The character we are currently processing.
      */
     let ch = '';
-
-    const fieldQuoted = false;
     /**
      * Keep track of where a quotation mark begins for reporting unterminated string literals.
      */
     let quoteBegin = Number.MAX_SAFE_INTEGER;
-
     /**
      * The parsed current field
      */
-    let field: Field = '';
-
+    let field = '';
     /**
      * The parsed row.
      */
-    let row: Field[] = [];
-
+    let row = [];
     /**
      * The parsed output.
      */
-    let out: Field[][] = [];
-
+    let out = [];
     /**
      * The 1-based line number.
      */
     const line = 1;
-
     /**
      * The zero-based column number.
      */
     const column = 0;
-
     /**
      * Helper function to parse a single field.
      */
-    const parseField = function (fieldAsString: string): string | number | null {
-        if (fieldQuoted) {
-            return fieldAsString;
-        }
-        else {
+    const parseField = function (fieldAsString) {
+        {
             // If field is empty set to null
             if (fieldAsString === '') {
                 return null;
@@ -397,7 +340,6 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             else if (options.trim) {
                 fieldAsString = fieldAsString.trim();
             }
-
             // Convert unquoted numbers to their appropriate types
             if (rxIsInt.test(fieldAsString)) {
                 return parseInt(fieldAsString, 10);
@@ -411,8 +353,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             }
         }
     };
-
-    const error = function (e: CSVError) {
+    const error = function (e) {
         if (errors) {
             errors.push(e);
         }
@@ -420,10 +361,8 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             throw e;
         }
     };
-
     for (let i = 0; i < sLength; i += 1) {
         ch = s.charAt(i);
-
         switch (state) {
             case CsvState.START: {
                 switch (ch) {
@@ -501,7 +440,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case COMMA: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         state = CsvState.DELIM;
@@ -518,14 +457,14 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case SPACE: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         state = CsvState.TRAILING_WHITESPACE;
                         break;
                     }
                     case LF: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         out.push(row);
@@ -535,7 +474,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                     }
                     case CR: {
                         // Do we want to support CRLF?
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         out.push(row);
@@ -615,7 +554,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case SPACE: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         state = CsvState.TRAILING_WHITESPACE;
@@ -771,7 +710,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case LF: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         out.push(row);
@@ -781,7 +720,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                     }
                     case CR: {
                         // Do we want to support CRLF?
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         out.push(row);
@@ -835,7 +774,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case SPACE: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         state = CsvState.TRAILING_WHITESPACE;
@@ -864,7 +803,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             case CsvState.SIGNED_EXPONENT: {
                 switch (ch) {
                     case SPACE: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         state = CsvState.TRAILING_WHITESPACE;
@@ -884,7 +823,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case LF: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         out.push(row);
@@ -893,7 +832,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
                         break;
                     }
                     case CR: {
-                        field = parseField(field as string);
+                        field = parseField(field);
                         row.push(field);
                         field = '';
                         out.push(row);
@@ -936,12 +875,11 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             }
         }
     }
-
     // We've reached the end of the string.
     switch (state) {
         case CsvState.INTEGER: {
             // Add the last field
-            field = parseField(field as string);
+            field = parseField(field);
             row.push(field);
             field = '';
             out.push(row);
@@ -950,7 +888,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
         }
         case CsvState.DECIMAL: {
             // Add the last field
-            field = parseField(field as string);
+            field = parseField(field);
             row.push(field);
             field = '';
             out.push(row);
@@ -960,7 +898,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
         case CsvState.EXPONENT:
         case CsvState.SIGNED_EXPONENT: {
             // Add the last field
-            field = parseField(field as string);
+            field = parseField(field);
             row.push(field);
             field = '';
             out.push(row);
@@ -970,7 +908,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
         case CsvState.APOS_ESCAPE: {
             // It's not actually an escape that we saw, but the end of the apostrophe delimited string.
             // Add the last field
-            field = parseField(field as string);
+            field = parseField(field);
             row.push(field);
             field = '';
             out.push(row);
@@ -980,7 +918,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
         case CsvState.QUOTE_ESCAPE: {
             // It's not actually an escape that we saw, but the end of the quote delimited string.
             // Add the last field
-            field = parseField(field as string);
+            field = parseField(field);
             row.push(field);
             field = '';
             out.push(row);
@@ -989,7 +927,7 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
         }
         case CsvState.ISO8601_HHMM: {
             // Add the last field
-            field = parseField(field as string);
+            field = parseField(field);
             row.push(field);
             field = '';
             out.push(row);
@@ -1025,9 +963,11 @@ export function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): 
             throw new Error(`Unexpected end state ${decodeState(state)} ${s}`);
         }
     }
-
     // Expose the ability to discard initial rows
-    if (options.skipRows) out = out.slice(options.skipRows);
-
+    if (options.skipRows)
+        out = out.slice(options.skipRows);
     return out;
 }
+
+export { CSVError, dataToArrays, parse, serialize };
+//# sourceMappingURL=index.js.map
