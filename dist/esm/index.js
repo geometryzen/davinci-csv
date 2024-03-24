@@ -1,5 +1,5 @@
 /**
-* davinci-csv 1.0.3
+* davinci-csv 1.0.4
 * (c) David Holmes david.geo.holmes@gmail.com
 * Released under the MIT License.
 */
