@@ -41,7 +41,7 @@ export default [
                 sourcemap: true
             },
             {
-                file: pkg.exports['.'].system,
+                file: pkg.exports.default.system,
                 format: 'system',
                 sourcemap: true,
                 plugins: [terser()]

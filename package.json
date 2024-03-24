@@ -7,10 +7,14 @@
         "email": "david.geo.holmes@gmail.com"
     },
     "exports": {
-        ".": {
+        "default": {
             "types": "./dist/index.d.ts",
             "system": "./dist/system/index.min.js",
             "default": "./dist/esm/index.js"
+        },
+        "node": {
+            "module": "./dist/esm/index.js",
+            "require": "./dist/commonjs/index.js"
         }
     },
     "browser": "./dist/umd/index.js",
