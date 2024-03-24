@@ -27,7 +27,7 @@ System.register([], (function (exports) {
                     this.line = line;
                     this.column = column;
                 }
-            } exports('CSVError', CSVError);
+            } exports("CSVError", CSVError);
 
             var ErrorCode;
             (function (ErrorCode) {

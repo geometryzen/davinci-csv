@@ -3,6 +3,8 @@
 * (c) David Holmes david.geo.holmes@gmail.com
 * Released under the MIT License.
 */
+'use strict';
+
 class CSVError {
     code;
     message;
@@ -974,5 +976,8 @@ function parse(csvText, dialect, errors) {
     return out;
 }
 
-export { CSVError, dataToArrays, parse, serialize };
+exports.CSVError = CSVError;
+exports.dataToArrays = dataToArrays;
+exports.parse = parse;
+exports.serialize = serialize;
 //# sourceMappingURL=index.js.map

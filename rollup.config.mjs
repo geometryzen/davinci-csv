@@ -1,10 +1,11 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-var-requires */
+import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
+import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import dts from 'rollup-plugin-dts';
 import external from 'rollup-plugin-peer-deps-external';
-import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json' assert { type: 'json' };
 
 /**
@@ -19,12 +20,19 @@ const banner = `/**
 
 export default [
     {
-        input: 'src/index.ts',
+        input: './src/index.ts',
         output: [
+            {
+                banner,
+                file: './dist/esm/index.js',
+                format: 'esm',
+                sourcemap: true
+            },
             {
                 file: pkg.module,
                 format: 'esm',
-                sourcemap: true
+                sourcemap: true,
+                plugins: [terser()]
             },
             {
                 banner,
@@ -33,17 +41,29 @@ export default [
                 sourcemap: true
             },
             {
-                banner,
-                file: './dist/system/index.min.js',
+                file: pkg.exports['.'].system,
                 format: 'system',
                 sourcemap: true,
                 plugins: [terser()]
+            },
+            {
+                banner,
+                file: pkg.main,
+                format: 'commonjs',
+                sourcemap: true
+            },
+            {
+                file: pkg.browser,
+                format: 'umd',
+                name: 'DAVINCI_CSV',
+                sourcemap: true
             }
         ],
         plugins: [
+            commonjs(),
             external(),
             resolve(),
-            typescript({ tsconfig: './tsconfig.json' })
+            typescript({ tsconfig: './tsconfig.json', exclude: ['**/*.spec.ts'] })
         ]
     },
     {

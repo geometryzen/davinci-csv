@@ -1,20 +1,12 @@
-declare class CSVError {
-    code: string;
-    message: string;
-    index: number;
-    line: number;
-    column: number;
-    constructor(code: string, message: string, index: number, line: number, column: number);
-}
-
+import { CSVError } from './CSVError';
 /**
  * A field in a comma-separated file is either a number, a string, or null.
  */
-type Field = number | string | null;
+export type Field = number | string | null;
 /**
  * A format for relational data.
  */
-interface Data {
+export interface Data {
     fields: {
         id: string;
     }[];
@@ -25,7 +17,7 @@ interface Data {
 /**
  * Options used for customizing parsing and serialization.
  */
-interface Dialect {
+export interface Dialect {
     /**
      * Specifies the delimiter between fields.
      * Default is the comma, </code>','</code>.
@@ -64,15 +56,13 @@ interface Dialect {
  * Converts from the fields and records structure to an array of arrays.
  * The first row in the output contains the field names in the same order as the input.
  */
-declare function dataToArrays(data: Data): Field[][];
+export declare function dataToArrays(data: Data): Field[][];
 /**
  * Converts from structured data to a string in CSV format of the specified dialect.
  */
-declare function serialize(data: Data | Field[][], dialect?: Dialect): string;
+export declare function serialize(data: Data | Field[][], dialect?: Dialect): string;
 /**
  * Parses a string representation of CSV data into an array of arrays of fields.
  * The dialect may be specified to improve the parsing.
  */
-declare function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): Field[][];
-
-export { CSVError, type Data, type Dialect, type Field, dataToArrays, parse, serialize };
+export declare function parse(csvText: string, dialect?: Dialect, errors?: CSVError[]): Field[][];
