@@ -157,6 +157,7 @@ function dataToArrays(data) {
     return arrays;
 }
 /**
+ *
  */
 function normalizeDialectOptions(dialect) {
     // note lower case compared to CSV DDF.

@@ -48,17 +48,19 @@
     ],
     "scripts": {
         "build": "npm run clean && rollup -c",
-        "lint": "eslint . --ext '.ts,.tsx'",
-        "test": "jest",
-        "clean": "rm -rf build && rm -rf dist",
         "check": "npx package-check",
+        "clean": "rm -rf build && rm -rf dist",
         "coverage": "npm run test -- --coverage",
+        "dev": "rollup --config rollup.config.mjs --configPlugin @rollup/plugin-typescript -w",
         "docs": "npm run docs:typedoc && open-cli docs/index.html",
         "docs:typedoc": "rm -rf docs && typedoc --options typedoc.json",
+        "lint": "eslint . --ext '.ts,.tsx'",
         "pages": "npm run docs:typedoc && gh-pages -d docs",
         "pretest": "npm run build",
         "prepublishOnly": "npm run build && npm run test && npm run lint && npx package-check && npm run pages",
-        "server": "live-server"
+        "release": "release-it",
+        "server": "live-server",
+        "test": "jest"
     },
     "engines": {
         "node": ">=4"

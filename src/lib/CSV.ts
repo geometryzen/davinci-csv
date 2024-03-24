@@ -180,6 +180,7 @@ export function dataToArrays(data: Data): Field[][] {
 }
 
 /**
+ * 
  */
 function normalizeDialectOptions(dialect?: Dialect): NormalizedDialect {
     // note lower case compared to CSV DDF.

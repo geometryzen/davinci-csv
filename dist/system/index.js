@@ -166,6 +166,7 @@ System.register([], (function (exports) {
                 return arrays;
             }
             /**
+             *
              */
             function normalizeDialectOptions(dialect) {
                 // note lower case compared to CSV DDF.
